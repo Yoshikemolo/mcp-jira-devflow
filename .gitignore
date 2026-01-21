@@ -20,6 +20,7 @@ secrets.json
 .netrc
 .npmrc.local
 .jira-test-config.json
+.mcp.json
 
 # Build output
 dist/

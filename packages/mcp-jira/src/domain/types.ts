@@ -93,6 +93,19 @@ export interface JiraIssue {
 }
 
 /**
+ * Compact Jira issue representation for large result sets.
+ * Contains only essential fields to reduce token usage.
+ */
+export interface JiraIssueCompact {
+  readonly key: string;
+  readonly summary: string;
+  readonly status: string;
+  readonly priority?: string | undefined;
+  readonly assignee?: string | undefined;
+  readonly issueType: string;
+}
+
+/**
  * Jira component representation.
  */
 export interface JiraComponent {
