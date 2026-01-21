@@ -8,6 +8,31 @@
 import { z } from "zod";
 
 /**
+ * Custom field ID schema.
+ * Validates that field IDs match the customfield_NNNNN format.
+ */
+export const CustomFieldIdSchema = z
+  .string()
+  .regex(/^customfield_\d+$/, "Field ID must be in format customfield_NNNNN");
+
+export type CustomFieldId = z.infer<typeof CustomFieldIdSchema>;
+
+/**
+ * Field mappings configuration schema.
+ * Allows users to specify custom field IDs for Story Points and Sprint fields.
+ */
+export const FieldMappingsSchema = z.object({
+  storyPoints: CustomFieldIdSchema.optional().describe(
+    "Custom field ID for Story Points (e.g., customfield_10016)"
+  ),
+  sprint: CustomFieldIdSchema.optional().describe(
+    "Custom field ID for Sprint (e.g., customfield_10020)"
+  ),
+});
+
+export type FieldMappings = z.infer<typeof FieldMappingsSchema>;
+
+/**
  * Authentication configuration schema.
  * Supports Basic Auth (email + API token) which is the standard for Jira Cloud.
  */
@@ -52,6 +77,9 @@ export const JiraConfigSchema = z.object({
     .max(5)
     .default(3)
     .describe("Maximum retry attempts for failed requests"),
+  fieldMappings: FieldMappingsSchema.optional().describe(
+    "Custom field ID mappings for Story Points and Sprint fields"
+  ),
 });
 
 export type JiraConfig = z.infer<typeof JiraConfigSchema>;
@@ -60,6 +88,24 @@ export type JiraConfig = z.infer<typeof JiraConfigSchema>;
  * Loads configuration from environment variables.
  * Throws if required variables are missing or invalid.
  */
+/**
+ * Builds field mappings from environment variables.
+ * Returns undefined if no field mappings are configured.
+ */
+function loadFieldMappingsFromEnv(): FieldMappings | undefined {
+  const storyPoints = process.env["JIRA_FIELD_STORY_POINTS"];
+  const sprint = process.env["JIRA_FIELD_SPRINT"];
+
+  if (!storyPoints && !sprint) {
+    return undefined;
+  }
+
+  return {
+    storyPoints: storyPoints || undefined,
+    sprint: sprint || undefined,
+  };
+}
+
 export function loadConfigFromEnv(): JiraConfig {
   const rawConfig = {
     baseUrl: process.env["JIRA_BASE_URL"],
@@ -74,6 +120,7 @@ export function loadConfigFromEnv(): JiraConfig {
     maxRetries: process.env["JIRA_MAX_RETRIES"]
       ? parseInt(process.env["JIRA_MAX_RETRIES"], 10)
       : undefined,
+    fieldMappings: loadFieldMappingsFromEnv(),
   };
 
   const result = JiraConfigSchema.safeParse(rawConfig);
@@ -162,6 +209,7 @@ export function tryLoadConfigFromEnv(): JiraConfig | undefined {
     maxRetries: process.env["JIRA_MAX_RETRIES"]
       ? parseInt(process.env["JIRA_MAX_RETRIES"], 10)
       : undefined,
+    fieldMappings: loadFieldMappingsFromEnv(),
   };
 
   const result = JiraConfigSchema.safeParse(rawConfig);
@@ -176,6 +224,7 @@ export function createConfig(params: {
   baseUrl: string;
   email: string;
   apiToken: string;
+  fieldMappings?: FieldMappings;
 }): JiraConfig {
   const rawConfig = {
     baseUrl: params.baseUrl,
@@ -184,6 +233,7 @@ export function createConfig(params: {
       email: params.email,
       apiToken: params.apiToken,
     },
+    fieldMappings: params.fieldMappings,
   };
 
   return JiraConfigSchema.parse(rawConfig);

@@ -5,6 +5,8 @@
 export {
   JiraConfigSchema,
   AuthConfigSchema,
+  CustomFieldIdSchema,
+  FieldMappingsSchema,
   loadConfigFromEnv,
   validateConfig,
   tryLoadConfigFromEnv,
@@ -16,4 +18,6 @@ export type {
   JiraConfig,
   AuthConfig,
   MissingConfigField,
+  CustomFieldId,
+  FieldMappings,
 } from "./schema.js";

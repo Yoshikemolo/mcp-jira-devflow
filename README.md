@@ -52,6 +52,8 @@ Whether you are managing a single project or orchestrating multiple enterprise a
 | `get_sprint` | Get sprint details with issues and metrics |
 | `move_issues_to_sprint` | Move issues to a sprint (with dry run support) |
 | `update_sprint` | Update sprint name, dates, goal, or state |
+| `jira_configure_fields` | Configure custom field mappings for Story Points and Sprint |
+| `jira_discover_fields` | Discover available custom fields from your Jira instance |
 | `jira_dev_reload` | Development only: triggers graceful server restart to apply code changes |
 
 ---
@@ -67,7 +69,7 @@ MCP Jira DevFlow is evolving toward a unified platform for AI-assisted enterpris
 - [x] Deep hierarchical analysis with anomaly detection
 - [x] Write operations (create, update, transition issues)
 - [x] Board and sprint management
-- [ ] Custom field mapping and configuration
+- [x] Custom field mapping and configuration
 
 ### Phase 2: Git Integration (Upcoming)
 - [ ] Repository context awareness
@@ -148,6 +150,49 @@ JIRA_BASE_URL=https://your-domain.atlassian.net
 JIRA_USER_EMAIL=your-email@example.com
 JIRA_API_TOKEN=your-api-token
 ```
+
+### Custom Field Configuration
+
+Different Jira instances use different custom field IDs for Story Points and Sprint fields. You can configure these via environment variables or at runtime.
+
+#### Environment Variables (Recommended)
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `JIRA_FIELD_STORY_POINTS` | Custom field ID for Story Points | `customfield_10016` |
+| `JIRA_FIELD_SPRINT` | Custom field ID for Sprint | `customfield_10020` |
+
+```json
+{
+  "mcpServers": {
+    "jira": {
+      "command": "node",
+      "args": ["/path/to/mcp-jira-devflow/packages/mcp-jira/dist/server.js"],
+      "env": {
+        "JIRA_BASE_URL": "https://your-company.atlassian.net",
+        "JIRA_USER_EMAIL": "your-email@company.com",
+        "JIRA_API_TOKEN": "your-api-token",
+        "JIRA_FIELD_STORY_POINTS": "customfield_10016",
+        "JIRA_FIELD_SPRINT": "customfield_10020"
+      }
+    }
+  }
+}
+```
+
+#### Runtime Configuration
+
+If you don't know your field IDs, use the discovery and configuration tools:
+
+1. **Discover fields**: Use `jira_discover_fields` to find available custom fields
+   - Filter by name: `jira_discover_fields(search: 'story')`
+   - Filter by type: `jira_discover_fields(type: 'number')` for Story Points candidates
+   - Filter by type: `jira_discover_fields(type: 'array')` for Sprint candidates
+
+2. **Configure fields**: Use `jira_configure_fields` to set your field mappings
+   - Set Story Points: `jira_configure_fields(storyPoints: 'customfield_10016')`
+   - Set Sprint: `jira_configure_fields(sprint: 'customfield_10020')`
+   - Reset to defaults: `jira_configure_fields(reset: true)`
 
 ### Claude Desktop Integration
 

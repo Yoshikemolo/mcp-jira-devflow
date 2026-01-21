@@ -9,6 +9,7 @@
  */
 
 import type { JiraConfig } from "../config/index.js";
+import type { ResolvedFieldMappings } from "../server-state.js";
 import type {
   JiraIssue,
   JiraIssueExtended,
@@ -31,6 +32,7 @@ import type {
   MoveIssuesToSprintResult,
   UpdateSprintInput,
   UpdateSprintResult,
+  JiraField,
 } from "./types.js";
 import {
   mapIssue,
@@ -196,10 +198,9 @@ export interface ConnectionVerification {
 }
 
 /**
- * Default fields to request for issue searches.
- * Includes standard fields and custom fields for story points and sprints.
+ * Base fields to request for issue searches (without custom fields).
  */
-const DEFAULT_SEARCH_FIELDS = [
+const BASE_SEARCH_FIELDS = [
   "summary",
   "description",
   "status",
@@ -212,33 +213,70 @@ const DEFAULT_SEARCH_FIELDS = [
   "updated",
   "labels",
   "components",
-  // Include custom fields for story points and sprints
-  ...STORY_POINTS_FIELD_CANDIDATES,
-  ...SPRINT_FIELD_CANDIDATES,
 ];
 
-/**
- * Extended fields for deep analysis including hierarchy and links.
- */
-const EXTENDED_ISSUE_FIELDS = [
-  ...DEFAULT_SEARCH_FIELDS,
-  "parent",
-  "subtasks",
-  "issuelinks",
-];
+// Default search fields and extended issue fields are now computed dynamically
+// via getSearchFields() and getExtendedFields() methods in JiraClient
 
 export class JiraClient {
   private readonly config: JiraConfig;
   private readonly logger: Logger;
   private readonly authHeader: string;
+  private fieldMappings: ResolvedFieldMappings;
 
-  constructor(config: JiraConfig, logger?: Logger) {
+  constructor(config: JiraConfig, logger?: Logger, fieldMappings?: ResolvedFieldMappings) {
     this.config = config;
     this.logger = logger ?? noopLogger;
 
     // Pre-compute auth header (Basic Auth with email:apiToken)
     const credentials = `${config.auth.email}:${config.auth.apiToken}`;
     this.authHeader = `Basic ${Buffer.from(credentials).toString("base64")}`;
+
+    // Initialize field mappings (defaults if not provided)
+    this.fieldMappings = fieldMappings ?? {
+      storyPointsField: STORY_POINTS_FIELD_CANDIDATES[0],
+      storyPointsCandidates: [...STORY_POINTS_FIELD_CANDIDATES],
+      sprintField: SPRINT_FIELD_CANDIDATES[0],
+      sprintCandidates: [...SPRINT_FIELD_CANDIDATES],
+    };
+  }
+
+  /**
+   * Updates field mappings at runtime.
+   * Used when field mappings are configured via the jira_configure_fields tool.
+   */
+  updateFieldMappings(mappings: ResolvedFieldMappings): void {
+    this.fieldMappings = mappings;
+  }
+
+  /**
+   * Gets the current field mappings.
+   */
+  getFieldMappings(): ResolvedFieldMappings {
+    return this.fieldMappings;
+  }
+
+  /**
+   * Gets the search fields including configured custom field candidates.
+   */
+  private getSearchFields(): string[] {
+    return [
+      ...BASE_SEARCH_FIELDS,
+      ...this.fieldMappings.storyPointsCandidates,
+      ...this.fieldMappings.sprintCandidates,
+    ];
+  }
+
+  /**
+   * Gets the extended fields for deep analysis including hierarchy and links.
+   */
+  private getExtendedFields(): string[] {
+    return [
+      ...this.getSearchFields(),
+      "parent",
+      "subtasks",
+      "issuelinks",
+    ];
   }
 
   /**
@@ -515,7 +553,7 @@ export class JiraClient {
     const body: Record<string, unknown> = {
       jql,
       maxResults,
-      fields: options?.fields ?? DEFAULT_SEARCH_FIELDS,
+      fields: options?.fields ?? this.getSearchFields(),
     };
 
     // Use nextPageToken for pagination (new API), fall back to startAt (legacy)
@@ -587,7 +625,7 @@ export class JiraClient {
         `/issue/${issueKey}`,
         {
           params: {
-            fields: EXTENDED_ISSUE_FIELDS.join(","),
+            fields: this.getExtendedFields().join(","),
           },
         }
       );
@@ -628,7 +666,7 @@ export class JiraClient {
       const result = await this.searchJql(jql, {
         maxResults: batchSize,
         nextPageToken,
-        fields: DEFAULT_SEARCH_FIELDS,
+        fields: this.getSearchFields(),
       });
 
       allIssues.push(...result.issues);
@@ -670,7 +708,7 @@ export class JiraClient {
       const result = await this.searchJql(jql, {
         maxResults: batchSize,
         nextPageToken,
-        fields: DEFAULT_SEARCH_FIELDS,
+        fields: this.getSearchFields(),
       });
 
       allIssues.push(...result.issues);
@@ -724,9 +762,9 @@ export class JiraClient {
       fields["parent"] = { key: input.parentKey };
     }
 
-    // Story points - try the first known custom field
+    // Story points - use configured field
     if (input.storyPoints !== undefined) {
-      fields[STORY_POINTS_FIELD_CANDIDATES[0]] = input.storyPoints;
+      fields[this.fieldMappings.storyPointsField] = input.storyPoints;
     }
 
     const response = await this.request<{
@@ -781,9 +819,9 @@ export class JiraClient {
       fields["labels"] = [...input.labels];
     }
 
-    // Story points - try the first known custom field
+    // Story points - use configured field
     if (input.storyPoints !== undefined) {
-      fields[STORY_POINTS_FIELD_CANDIDATES[0]] = input.storyPoints;
+      fields[this.fieldMappings.storyPointsField] = input.storyPoints;
     }
 
     // Only make the request if there are fields to update
@@ -1065,7 +1103,7 @@ export class JiraClient {
       const params: Record<string, string | number | undefined> = {
         startAt: options?.startAt ?? 0,
         maxResults: options?.maxResults ?? 50,
-        fields: [...STORY_POINTS_FIELD_CANDIDATES, ...SPRINT_FIELD_CANDIDATES].join(","),
+        fields: this.getSearchFields().join(","),
       };
 
       if (options?.jql) {
@@ -1200,5 +1238,47 @@ export class JiraClient {
       }
       throw error;
     }
+  }
+
+  // ============================================================================
+  // Field Discovery Operations
+  // ============================================================================
+
+  /**
+   * Raw field from Jira API.
+   */
+  private mapField(raw: {
+    id: string;
+    name: string;
+    custom: boolean;
+    schema?: { type?: string; custom?: string; items?: string };
+  }): JiraField {
+    return {
+      id: raw.id,
+      name: raw.name,
+      custom: raw.custom,
+      schemaType: raw.schema?.type,
+      customType: raw.schema?.custom,
+      itemsType: raw.schema?.items,
+    };
+  }
+
+  /**
+   * Gets all available fields from the Jira instance.
+   * Useful for discovering custom field IDs for Story Points, Sprint, etc.
+   *
+   * @returns Array of field definitions
+   */
+  async getFields(): Promise<JiraField[]> {
+    const raw = await this.request<
+      Array<{
+        id: string;
+        name: string;
+        custom: boolean;
+        schema?: { type?: string; custom?: string; items?: string };
+      }>
+    >("GET", "/field");
+
+    return raw.map((f) => this.mapField(f));
   }
 }

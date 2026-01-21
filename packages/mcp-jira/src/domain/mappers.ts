@@ -317,10 +317,16 @@ export const SPRINT_FIELD_CANDIDATES = [
 
 /**
  * Extracts story points from custom fields.
- * Tries multiple common field IDs and returns the first valid number found.
+ * Tries multiple field IDs and returns the first valid number found.
+ *
+ * @param fields - The issue fields object
+ * @param candidates - Optional array of field IDs to try (defaults to STORY_POINTS_FIELD_CANDIDATES)
  */
-export function extractStoryPoints(fields: Record<string, unknown>): number | undefined {
-  for (const fieldId of STORY_POINTS_FIELD_CANDIDATES) {
+export function extractStoryPoints(
+  fields: Record<string, unknown>,
+  candidates: readonly string[] = STORY_POINTS_FIELD_CANDIDATES
+): number | undefined {
+  for (const fieldId of candidates) {
     const value = fields[fieldId];
     if (typeof value === "number" && !isNaN(value)) {
       return value;
@@ -331,14 +337,20 @@ export function extractStoryPoints(fields: Record<string, unknown>): number | un
 
 /**
  * Extracts sprint data from custom fields.
- * Tries multiple common field IDs.
+ * Tries multiple field IDs.
  * Returns the active sprint if available, otherwise the most recent sprint.
+ *
+ * @param fields - The issue fields object
+ * @param candidates - Optional array of field IDs to try (defaults to SPRINT_FIELD_CANDIDATES)
  */
-export function extractSprints(fields: Record<string, unknown>): {
+export function extractSprints(
+  fields: Record<string, unknown>,
+  candidates: readonly string[] = SPRINT_FIELD_CANDIDATES
+): {
   sprint?: JiraSprint | undefined;
   sprints?: JiraSprint[] | undefined;
 } {
-  for (const fieldId of SPRINT_FIELD_CANDIDATES) {
+  for (const fieldId of candidates) {
     const value = fields[fieldId];
     if (Array.isArray(value) && value.length > 0) {
       // Sprint field is an array of sprint objects

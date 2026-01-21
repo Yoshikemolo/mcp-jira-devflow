@@ -43,6 +43,10 @@ import { getSprintTool, executeGetSprint } from "./get-sprint.js";
 import { moveIssuesToSprintTool, executeMoveIssuesToSprint } from "./move-issues-to-sprint.js";
 import { updateSprintTool, executeUpdateSprint } from "./update-sprint.js";
 
+// Field configuration tools
+import { configureFieldsTool, executeConfigureFields } from "./configure-fields.js";
+import { discoverFieldsTool, executeDiscoverFields } from "./discover-fields.js";
+
 /**
  * Tool definition type.
  */
@@ -85,6 +89,9 @@ const jiraTools: ToolDefinition[] = [
   getSprintTool,
   moveIssuesToSprintTool,
   updateSprintTool,
+  // Field configuration
+  configureFieldsTool,
+  discoverFieldsTool,
 ];
 
 /**
@@ -238,6 +245,13 @@ export function registerTools(server: Server): void {
       case "update_sprint":
         return executeUpdateSprint(client, args);
 
+      // Field configuration
+      case "jira_configure_fields":
+        return executeConfigureFields(args);
+
+      case "jira_discover_fields":
+        return executeDiscoverFields(client, args);
+
       default:
         return {
           content: [
@@ -270,3 +284,6 @@ export { getBoardSprintsTool, executeGetBoardSprints } from "./get-board-sprints
 export { getSprintTool, executeGetSprint } from "./get-sprint.js";
 export { moveIssuesToSprintTool, executeMoveIssuesToSprint } from "./move-issues-to-sprint.js";
 export { updateSprintTool, executeUpdateSprint } from "./update-sprint.js";
+// Field configuration
+export { configureFieldsTool, executeConfigureFields } from "./configure-fields.js";
+export { discoverFieldsTool, executeDiscoverFields } from "./discover-fields.js";

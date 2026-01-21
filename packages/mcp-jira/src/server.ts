@@ -17,7 +17,7 @@ import {
 } from "./config/index.js";
 import { JiraClient } from "./domain/jira-client.js";
 import { registerTools } from "./tools/index.js";
-import { setConfigured, setUnconfigured } from "./server-state.js";
+import { setConfigured, setUnconfigured, resolveFieldMappings } from "./server-state.js";
 import { startWatcher, stopWatcher, getWatcherConfig } from "./dev/watcher.js";
 
 const SERVER_NAME = "mcp-jira";
@@ -53,9 +53,11 @@ async function main(): Promise<void> {
   const config = tryLoadConfigFromEnv();
 
   if (config) {
+    // Resolve field mappings from config
+    const fieldMappings = resolveFieldMappings(config.fieldMappings);
     // Configuration available - create client and set configured state
-    const client = new JiraClient(config);
-    setConfigured(config, client);
+    const client = new JiraClient(config, undefined, fieldMappings);
+    setConfigured(config, client, fieldMappings);
     console.error(
       `${SERVER_NAME} v${SERVER_VERSION} started (configured: ${config.baseUrl})`
     );

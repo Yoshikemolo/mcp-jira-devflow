@@ -447,3 +447,20 @@ export interface UpdateSprintResult {
   readonly success: boolean;
   readonly sprint: JiraSprintExtended;
 }
+
+// ============================================================================
+// Field Discovery Types
+// ============================================================================
+
+/**
+ * Jira field metadata.
+ * Used for discovering custom field IDs.
+ */
+export interface JiraField {
+  readonly id: string;
+  readonly name: string;
+  readonly custom: boolean;
+  readonly schemaType?: string | undefined;
+  readonly customType?: string | undefined;
+  readonly itemsType?: string | undefined;
+}
