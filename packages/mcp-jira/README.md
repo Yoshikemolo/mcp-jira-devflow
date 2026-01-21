@@ -6,6 +6,31 @@ MCP server for Jira integration.
 
 **F001 Implemented** - Read operations available.
 
+## API Compatibility
+
+This MCP server is compatible with:
+
+- **Jira Cloud** REST API v3 (2024+)
+- **Deployment type**: Cloud only (Server/Data Center not supported)
+
+The server verifies API compatibility on connection and will report an error if the Jira instance is not compatible.
+
+### API Changes (2024)
+
+This implementation uses the new `/rest/api/3/search/jql` endpoint which:
+- Requires `POST` method with JSON body
+- Uses token-based pagination (`nextPageToken`, `isLast`) instead of total count
+- Requires bounded JQL queries (must include restrictions like `project = X`)
+
+### Connection Verification
+
+The client automatically verifies:
+1. Jira instance is Cloud deployment
+2. API authentication is valid
+3. User has access to the Jira instance
+
+Use `verifyConnection()` to check compatibility before executing operations.
+
 ## Available Tools
 
 ### `get_issue`
@@ -27,12 +52,14 @@ Searches for issues using JQL (Jira Query Language).
 ```json
 {
   "jql": "project = PROJ AND status = Open",
-  "startAt": 0,
-  "maxResults": 50
+  "maxResults": 50,
+  "nextPageToken": "optional-token-for-next-page"
 }
 ```
 
 Returns: List of matching issues with pagination info. Maximum 50 results per request.
+
+**Note**: The new Jira API v3 uses token-based pagination. Use the `nextPageToken` from the response to fetch subsequent pages. The `total` count is no longer provided by Jira; use `isLast` to check if there are more results.
 
 ### `get_issue_comments`
 

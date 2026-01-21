@@ -105,19 +105,31 @@ export interface JiraComponent {
  * Search options for JQL queries.
  */
 export interface JiraSearchOptions {
+  /** @deprecated Use nextPageToken for pagination in Jira Cloud API v3 */
   readonly startAt?: number | undefined;
   readonly maxResults?: number | undefined;
   readonly fields?: readonly string[] | undefined;
+  /** Token for fetching a specific page of results (Jira Cloud API v3) */
+  readonly nextPageToken?: string | undefined;
 }
 
 /**
  * Search result from JQL query.
+ *
+ * Note: Jira Cloud API v3 (2024+) uses token-based pagination with nextPageToken/isLast
+ * instead of the older startAt/total pattern. The total count is no longer available
+ * in the new endpoint.
  */
 export interface JiraSearchResult {
   readonly issues: readonly JiraIssue[];
   readonly startAt: number;
   readonly maxResults: number;
+  /** @deprecated The new Jira API does not return total count. This will be -1 if unknown. */
   readonly total: number;
+  /** Token for fetching the next page of results. Undefined if no more pages. */
+  readonly nextPageToken?: string | undefined;
+  /** Whether this is the last page of results. */
+  readonly isLast: boolean;
 }
 
 /**

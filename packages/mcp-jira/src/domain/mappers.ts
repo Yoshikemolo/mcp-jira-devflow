@@ -243,18 +243,27 @@ export function mapComment(raw: RawComment): JiraComment {
 
 /**
  * Maps a raw search response to domain search result.
+ *
+ * Supports both the old format (startAt, maxResults, total) and the new
+ * Jira Cloud API v3 format (nextPageToken, isLast).
  */
 export function mapSearchResult(raw: {
   issues: RawIssue[];
-  startAt: number;
-  maxResults: number;
-  total: number;
+  // Old format fields (deprecated in new API)
+  startAt?: number;
+  maxResults?: number;
+  total?: number;
+  // New format fields (Jira Cloud API v3 2024+)
+  nextPageToken?: string;
+  isLast?: boolean;
 }): JiraSearchResult {
   return {
     issues: raw.issues.map(mapIssue),
-    startAt: raw.startAt,
-    maxResults: raw.maxResults,
-    total: raw.total,
+    startAt: raw.startAt ?? 0,
+    maxResults: raw.maxResults ?? raw.issues.length,
+    total: raw.total ?? -1, // -1 indicates total is unknown (new API doesn't provide it)
+    nextPageToken: raw.nextPageToken,
+    isLast: raw.isLast ?? (raw.nextPageToken === undefined),
   };
 }
 

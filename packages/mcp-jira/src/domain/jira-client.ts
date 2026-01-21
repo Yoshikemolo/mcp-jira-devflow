@@ -3,6 +3,9 @@
  *
  * Centralized client for all Jira REST API interactions.
  * Handles authentication, retries, and error handling.
+ *
+ * Compatible with: Jira Cloud REST API v3 (2024+)
+ * Note: Uses the new /search/jql endpoint which requires bounded JQL queries.
  */
 
 import type { JiraConfig } from "../config/index.js";
@@ -14,6 +17,12 @@ import type {
   JiraCommentsResult,
 } from "./types.js";
 import { mapIssue, mapSearchResult, mapCommentsResult } from "./mappers.js";
+
+/**
+ * Minimum supported Jira API version.
+ */
+const MIN_API_VERSION = "3";
+const SUPPORTED_DEPLOYMENT = "Cloud";
 
 /**
  * Error thrown when Jira API returns an error.
@@ -76,6 +85,28 @@ const noopLogger: Logger = {
 /**
  * Jira API client for read operations.
  */
+/**
+ * Server info returned by Jira API.
+ */
+export interface JiraServerInfo {
+  baseUrl: string;
+  version: string;
+  deploymentType: string;
+  buildNumber: number;
+  serverTitle: string;
+}
+
+/**
+ * Connection verification result.
+ */
+export interface ConnectionVerification {
+  success: boolean;
+  serverInfo?: JiraServerInfo;
+  user?: { displayName: string; emailAddress: string };
+  error?: string;
+  compatible: boolean;
+}
+
 export class JiraClient {
   private readonly config: JiraConfig;
   private readonly logger: Logger;
@@ -88,6 +119,65 @@ export class JiraClient {
     // Pre-compute auth header (Basic Auth with email:apiToken)
     const credentials = `${config.auth.email}:${config.auth.apiToken}`;
     this.authHeader = `Basic ${Buffer.from(credentials).toString("base64")}`;
+  }
+
+  /**
+   * Verifies the connection and checks API compatibility.
+   * Should be called before using other methods to ensure proper setup.
+   *
+   * @returns Connection verification result with server info
+   */
+  async verifyConnection(): Promise<ConnectionVerification> {
+    try {
+      // Get server info
+      const serverInfo = await this.request<{
+        baseUrl: string;
+        version: string;
+        deploymentType: string;
+        buildNumber: number;
+        serverTitle: string;
+      }>("GET", "/serverInfo");
+
+      // Get current user to verify auth
+      const user = await this.request<{
+        displayName: string;
+        emailAddress: string;
+      }>("GET", "/myself");
+
+      // Check compatibility - Cloud deployment always uses latest API v3
+      const isCloud = serverInfo.deploymentType === SUPPORTED_DEPLOYMENT;
+      const compatible = isCloud;
+
+      if (!compatible) {
+        return {
+          success: true,
+          serverInfo,
+          user,
+          compatible: false,
+          error: `Incompatible Jira deployment: ${serverInfo.deploymentType}. This client requires Jira ${SUPPORTED_DEPLOYMENT} with API v${MIN_API_VERSION}+.`,
+        };
+      }
+
+      this.logger.info("Jira connection verified", {
+        server: serverInfo.serverTitle,
+        version: serverInfo.version,
+        deployment: serverInfo.deploymentType,
+        user: user.displayName,
+      });
+
+      return {
+        success: true,
+        serverInfo,
+        user,
+        compatible: true,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        compatible: false,
+        error: error instanceof Error ? error.message : "Connection failed",
+      };
+    }
   }
 
   /**
@@ -294,16 +384,36 @@ export class JiraClient {
   ): Promise<JiraSearchResult> {
     const maxResults = Math.min(options?.maxResults ?? 50, 50); // Cap at 50 per skill constraints
 
-    const raw = await this.request<unknown>("GET", "/search", {
-      params: {
-        jql,
-        startAt: options?.startAt ?? 0,
-        maxResults,
-        fields:
-          options?.fields?.join(",") ??
-          "summary,description,status,priority,issuetype,project,assignee,reporter,created,updated,labels,components",
-      },
-    });
+    // Build request body for new /search/jql endpoint (Jira Cloud 2024+ migration)
+    // Note: The new endpoint requires bounded JQL queries (must include project, assignee, etc.)
+    const body: Record<string, unknown> = {
+      jql,
+      maxResults,
+      fields:
+        options?.fields ?? [
+          "summary",
+          "description",
+          "status",
+          "priority",
+          "issuetype",
+          "project",
+          "assignee",
+          "reporter",
+          "created",
+          "updated",
+          "labels",
+          "components",
+        ],
+    };
+
+    // Use nextPageToken for pagination (new API), fall back to startAt (legacy)
+    if (options?.nextPageToken) {
+      body["nextPageToken"] = options.nextPageToken;
+    } else if (options?.startAt) {
+      body["startAt"] = options.startAt;
+    }
+
+    const raw = await this.request<unknown>("POST", "/search/jql", { body });
 
     return mapSearchResult(raw as Parameters<typeof mapSearchResult>[0]);
   }

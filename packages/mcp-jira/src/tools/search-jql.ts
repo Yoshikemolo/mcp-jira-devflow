@@ -21,8 +21,7 @@ export const SearchJqlInputSchema = z.object({
     .int()
     .min(0)
     .optional()
-    .default(0)
-    .describe("The index of the first result to return (0-based)"),
+    .describe("(Deprecated) The index of the first result to return (0-based). Use nextPageToken instead."),
   maxResults: z
     .number()
     .int()
@@ -31,6 +30,10 @@ export const SearchJqlInputSchema = z.object({
     .optional()
     .default(50)
     .describe("Maximum number of results to return (max 50)"),
+  nextPageToken: z
+    .string()
+    .optional()
+    .describe("Token for fetching the next page of results"),
 });
 
 export type SearchJqlInput = z.infer<typeof SearchJqlInputSchema>;
@@ -41,7 +44,7 @@ export type SearchJqlInput = z.infer<typeof SearchJqlInputSchema>;
 export const searchJqlTool = {
   name: "search_jql",
   description:
-    "Searches for Jira issues using JQL (Jira Query Language). Returns a list of matching issues with pagination support. Maximum 50 results per request.",
+    "Searches for Jira issues using JQL (Jira Query Language). Returns a list of matching issues with pagination support. Maximum 50 results per request. Use nextPageToken from the response to fetch subsequent pages.",
   inputSchema: {
     type: "object" as const,
     properties: {
@@ -51,7 +54,7 @@ export const searchJqlTool = {
       },
       startAt: {
         type: "number",
-        description: "The index of the first result to return (0-based, default 0)",
+        description: "(Deprecated) Use nextPageToken for pagination instead.",
         minimum: 0,
       },
       maxResults: {
@@ -59,6 +62,10 @@ export const searchJqlTool = {
         description: "Maximum number of results to return (1-50, default 50)",
         minimum: 1,
         maximum: 50,
+      },
+      nextPageToken: {
+        type: "string",
+        description: "Token for fetching the next page of results",
       },
     },
     required: ["jql"],
@@ -88,26 +95,35 @@ export async function executeSearchJql(
     };
   }
 
-  const { jql, startAt, maxResults } = parseResult.data;
+  const { jql, startAt, maxResults, nextPageToken } = parseResult.data;
 
   try {
-    const result = await client.searchJql(jql, { startAt, maxResults });
+    const result = await client.searchJql(jql, { startAt, maxResults, nextPageToken });
+
+    // Build response with new pagination fields
+    const response: Record<string, unknown> = {
+      issueCount: result.issues.length,
+      isLast: result.isLast,
+      issues: result.issues,
+    };
+
+    // Include nextPageToken only if there are more pages
+    if (result.nextPageToken) {
+      response["nextPageToken"] = result.nextPageToken;
+    }
+
+    // Include legacy pagination fields for backwards compatibility
+    if (result.total >= 0) {
+      response["total"] = result.total;
+    }
+    response["startAt"] = result.startAt;
+    response["maxResults"] = result.maxResults;
 
     return {
       content: [
         {
           type: "text",
-          text: JSON.stringify(
-            {
-              total: result.total,
-              startAt: result.startAt,
-              maxResults: result.maxResults,
-              issueCount: result.issues.length,
-              issues: result.issues,
-            },
-            null,
-            2
-          ),
+          text: JSON.stringify(response, null, 2),
         },
       ],
     };

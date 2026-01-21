@@ -73,6 +73,7 @@ describe("search_jql tool", () => {
         startAt: 0,
         maxResults: 50,
         total: 1,
+        isLast: true,
       };
 
       const client = createMockClient();
@@ -98,6 +99,7 @@ describe("search_jql tool", () => {
         startAt: 0,
         maxResults: 50,
         total: 0,
+        isLast: true,
       };
 
       const client = createMockClient();
