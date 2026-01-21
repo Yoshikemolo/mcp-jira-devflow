@@ -33,6 +33,8 @@ import type {
   UpdateSprintInput,
   UpdateSprintResult,
   JiraField,
+  JiraChangelogResult,
+  JiraChangelogOptions,
 } from "./types.js";
 import {
   mapIssue,
@@ -44,6 +46,7 @@ import {
   mapBoard,
   mapSprintsResult,
   mapSprintExtended,
+  mapChangelogResult,
   textToAdf,
   STORY_POINTS_FIELD_CANDIDATES,
   SPRINT_FIELD_CANDIDATES,
@@ -597,6 +600,45 @@ export class JiraClient {
       );
 
       return mapCommentsResult(raw as Parameters<typeof mapCommentsResult>[0]);
+    } catch (error) {
+      if (error instanceof JiraApiError && error.statusCode === 404) {
+        throw new JiraNotFoundError(issueKey);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Gets the changelog (history) for an issue.
+   * Returns all changes made to the issue including field changes, status transitions, etc.
+   *
+   * @param issueKey - The issue key (e.g., "PROJECT-123")
+   * @param options - Pagination options
+   * @returns Changelog entries with pagination info
+   * @throws JiraNotFoundError if the issue doesn't exist
+   */
+  async getIssueChangelog(
+    issueKey: string,
+    options?: JiraChangelogOptions
+  ): Promise<JiraChangelogResult> {
+    // Validate issue key format
+    if (!/^[A-Z][A-Z0-9]*-\d+$/i.test(issueKey)) {
+      throw new Error(`Invalid issue key format: ${issueKey}`);
+    }
+
+    try {
+      const raw = await this.request<unknown>(
+        "GET",
+        `/issue/${issueKey}/changelog`,
+        {
+          params: {
+            startAt: options?.startAt ?? 0,
+            maxResults: options?.maxResults ?? 100,
+          },
+        }
+      );
+
+      return mapChangelogResult(raw as Parameters<typeof mapChangelogResult>[0]);
     } catch (error) {
       if (error instanceof JiraApiError && error.statusCode === 404) {
         throw new JiraNotFoundError(issueKey);

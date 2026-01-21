@@ -29,6 +29,7 @@ import {
 import { getIssueTool, executeGetIssue } from "./get-issue.js";
 import { searchJqlTool, executeSearchJql } from "./search-jql.js";
 import { getCommentsTool, executeGetComments } from "./get-comments.js";
+import { getChangelogTool, executeGetChangelog } from "./get-changelog.js";
 import { scrumGuidanceTool, executeScrumGuidance } from "./scrum-guidance.js";
 import { sprintVelocityTool, executeSprintVelocity } from "./get-sprint-velocity.js";
 import { deepAnalysisTool, executeDeepAnalysis } from "./deep-analysis.js";
@@ -77,6 +78,7 @@ const jiraTools: ToolDefinition[] = [
   getIssueTool,
   searchJqlTool,
   getCommentsTool,
+  getChangelogTool,
   scrumGuidanceTool,
   sprintVelocityTool,
   deepAnalysisTool,
@@ -211,6 +213,9 @@ export function registerTools(server: Server): void {
       case "get_issue_comments":
         return executeGetComments(client, args);
 
+      case "get_issue_changelog":
+        return executeGetChangelog(client, args);
+
       case "jira_scrum_guidance":
         return executeScrumGuidance(client, args);
 
@@ -270,6 +275,7 @@ export function registerTools(server: Server): void {
 export { getIssueTool, executeGetIssue } from "./get-issue.js";
 export { searchJqlTool, executeSearchJql } from "./search-jql.js";
 export { getCommentsTool, executeGetComments } from "./get-comments.js";
+export { getChangelogTool, executeGetChangelog } from "./get-changelog.js";
 export { setupGuideTool, executeSetupGuide } from "./setup-guide.js";
 export { configureTool, executeConfigure } from "./configure.js";
 export { scrumGuidanceTool, executeScrumGuidance } from "./scrum-guidance.js";

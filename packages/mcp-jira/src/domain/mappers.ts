@@ -30,6 +30,9 @@ import type {
   JiraBoardsResult,
   JiraSprintExtended,
   JiraSprintsResult,
+  JiraChangelogEntry,
+  JiraChangelogItem,
+  JiraChangelogResult,
 } from "./types.js";
 
 /**
@@ -833,5 +836,76 @@ export function mapSprintsResult(raw: {
     maxResults: raw.maxResults,
     total: raw.total,
     isLast: raw.isLast,
+  };
+}
+
+// ============================================================================
+// Changelog Mappers
+// ============================================================================
+
+/**
+ * Raw changelog item from Jira API.
+ */
+interface RawChangelogItem {
+  field: string;
+  fieldtype: string;
+  fieldId?: string;
+  from?: string | null;
+  fromString?: string | null;
+  to?: string | null;
+  toString?: string | null;
+}
+
+/**
+ * Raw changelog entry (history) from Jira API.
+ */
+interface RawChangelogEntry {
+  id: string;
+  author: RawUser;
+  created: string;
+  items: RawChangelogItem[];
+}
+
+/**
+ * Maps a raw changelog item to domain changelog item.
+ */
+export function mapChangelogItem(raw: RawChangelogItem): JiraChangelogItem {
+  return {
+    field: raw.field,
+    fieldtype: raw.fieldtype,
+    fieldId: raw.fieldId,
+    from: raw.from ?? undefined,
+    fromString: raw.fromString ?? undefined,
+    to: raw.to ?? undefined,
+    toString: raw.toString ?? undefined,
+  };
+}
+
+/**
+ * Maps a raw changelog entry to domain changelog entry.
+ */
+export function mapChangelogEntry(raw: RawChangelogEntry): JiraChangelogEntry {
+  return {
+    id: raw.id,
+    author: mapUser(raw.author),
+    created: raw.created,
+    items: raw.items.map(mapChangelogItem),
+  };
+}
+
+/**
+ * Maps a raw changelog response to domain changelog result.
+ */
+export function mapChangelogResult(raw: {
+  values: RawChangelogEntry[];
+  startAt: number;
+  maxResults: number;
+  total: number;
+}): JiraChangelogResult {
+  return {
+    changelog: raw.values.map(mapChangelogEntry),
+    startAt: raw.startAt,
+    maxResults: raw.maxResults,
+    total: raw.total,
   };
 }
