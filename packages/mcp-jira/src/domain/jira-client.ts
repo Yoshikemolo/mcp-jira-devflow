@@ -20,7 +20,7 @@ import { mapIssue, mapSearchResult, mapCommentsResult } from "./mappers.js";
  */
 export class JiraApiError extends Error {
   readonly statusCode: number;
-  readonly requestId?: string;
+  readonly requestId: string | undefined;
 
   constructor(message: string, statusCode: number, requestId?: string) {
     super(message);
@@ -140,7 +140,7 @@ export class JiraClient {
           this.config.timeout
         );
 
-        const response = await fetch(url.toString(), {
+        const fetchOptions: RequestInit = {
           method,
           headers: {
             Authorization: this.authHeader,
@@ -148,9 +148,14 @@ export class JiraClient {
             Accept: "application/json",
             "X-Request-Id": requestId,
           },
-          body: options?.body ? JSON.stringify(options.body) : undefined,
           signal: controller.signal,
-        });
+        };
+
+        if (options?.body) {
+          fetchOptions.body = JSON.stringify(options.body);
+        }
+
+        const response = await fetch(url.toString(), fetchOptions);
 
         clearTimeout(timeoutId);
 
@@ -195,9 +200,10 @@ export class JiraClient {
           }
 
           // Client error - don't retry
-          const errorBody = await response.text().catch(() => "Unknown error");
+          // Read error body for debugging but don't expose in message
+          await response.text().catch(() => {});
           throw new JiraApiError(
-            `Request failed: ${response.status}`,
+            `Request failed with status ${response.status}`,
             response.status,
             requestId
           );

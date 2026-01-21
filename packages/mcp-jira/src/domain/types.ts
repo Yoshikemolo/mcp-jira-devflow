@@ -3,6 +3,9 @@
  *
  * TypeScript types for Jira entities.
  * These types represent the domain model, not raw API responses.
+ *
+ * Note: Optional properties use `| undefined` to be compatible with
+ * exactOptionalPropertyTypes TypeScript option.
  */
 
 /**
@@ -11,8 +14,8 @@
 export interface JiraUser {
   readonly accountId: string;
   readonly displayName: string;
-  readonly emailAddress?: string;
-  readonly avatarUrl?: string;
+  readonly emailAddress?: string | undefined;
+  readonly avatarUrl?: string | undefined;
   readonly active: boolean;
 }
 
@@ -24,7 +27,7 @@ export interface JiraProject {
   readonly key: string;
   readonly name: string;
   readonly projectTypeKey: string;
-  readonly avatarUrl?: string;
+  readonly avatarUrl?: string | undefined;
 }
 
 /**
@@ -33,7 +36,7 @@ export interface JiraProject {
 export interface JiraStatus {
   readonly id: string;
   readonly name: string;
-  readonly description?: string;
+  readonly description?: string | undefined;
   readonly categoryKey: "new" | "indeterminate" | "done" | "undefined";
 }
 
@@ -43,7 +46,7 @@ export interface JiraStatus {
 export interface JiraPriority {
   readonly id: string;
   readonly name: string;
-  readonly iconUrl?: string;
+  readonly iconUrl?: string | undefined;
 }
 
 /**
@@ -52,8 +55,8 @@ export interface JiraPriority {
 export interface JiraIssueType {
   readonly id: string;
   readonly name: string;
-  readonly description?: string;
-  readonly iconUrl?: string;
+  readonly description?: string | undefined;
+  readonly iconUrl?: string | undefined;
   readonly subtask: boolean;
 }
 
@@ -76,13 +79,13 @@ export interface JiraIssue {
   readonly key: string;
   readonly self: string;
   readonly summary: string;
-  readonly description?: string;
+  readonly description?: string | undefined;
   readonly status: JiraStatus;
-  readonly priority?: JiraPriority;
+  readonly priority?: JiraPriority | undefined;
   readonly issueType: JiraIssueType;
   readonly project: JiraProject;
-  readonly assignee?: JiraUser;
-  readonly reporter?: JiraUser;
+  readonly assignee?: JiraUser | undefined;
+  readonly reporter?: JiraUser | undefined;
   readonly created: string;
   readonly updated: string;
   readonly labels: readonly string[];
@@ -95,16 +98,16 @@ export interface JiraIssue {
 export interface JiraComponent {
   readonly id: string;
   readonly name: string;
-  readonly description?: string;
+  readonly description?: string | undefined;
 }
 
 /**
  * Search options for JQL queries.
  */
 export interface JiraSearchOptions {
-  readonly startAt?: number;
-  readonly maxResults?: number;
-  readonly fields?: readonly string[];
+  readonly startAt?: number | undefined;
+  readonly maxResults?: number | undefined;
+  readonly fields?: readonly string[] | undefined;
 }
 
 /**
@@ -121,8 +124,8 @@ export interface JiraSearchResult {
  * Pagination options for list operations.
  */
 export interface JiraPaginationOptions {
-  readonly startAt?: number;
-  readonly maxResults?: number;
+  readonly startAt?: number | undefined;
+  readonly maxResults?: number | undefined;
 }
 
 /**
