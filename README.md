@@ -43,6 +43,9 @@ Whether you are managing a single project or orchestrating multiple enterprise a
 | `jira_scrum_guidance` | SCRUM best-practice analysis with severity-ranked recommendations |
 | `get_sprint_velocity` | Team velocity metrics and sprint performance analysis |
 | `jira_deep_analysis` | Hierarchical analysis with metrics aggregation and anomaly detection |
+| `create_issue` | Create new issues with full field support (subtasks, story points, labels) |
+| `update_issue` | Update existing issues (summary, description, assignee, priority, etc.) |
+| `transition_issue` | Transition issues between workflow states |
 | `jira_dev_reload` | Development only: triggers graceful server restart to apply code changes |
 
 ---
@@ -56,7 +59,7 @@ MCP Jira DevFlow is evolving toward a unified platform for AI-assisted enterpris
 - [x] SCRUM guidance and best-practice enforcement
 - [x] Sprint velocity and performance metrics
 - [x] Deep hierarchical analysis with anomaly detection
-- [ ] Write operations (create, update, transition issues)
+- [x] Write operations (create, update, transition issues)
 - [ ] Board and sprint management
 - [ ] Custom field mapping and configuration
 
@@ -216,7 +219,7 @@ pnpm build --watch
 | F002 | SCRUM Guidance | Stable | Best-practice analysis and recommendations |
 | F004 | Sprint Velocity | Stable | Team performance metrics |
 | F005 | Deep Analysis | Stable | Hierarchical analysis with anomaly detection |
-| F006 | Jira Write Operations | Planned | Issue creation and updates |
+| F006 | Jira Write Operations | Stable | Issue creation and updates |
 | F007 | Git Integration | Planned | Repository and branch management |
 | F008 | PR Automation | Planned | Automated pull request workflows |
 
