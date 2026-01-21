@@ -9,6 +9,19 @@
  */
 
 /**
+ * Jira sprint representation.
+ */
+export interface JiraSprint {
+  readonly id: number;
+  readonly name: string;
+  readonly state: "active" | "closed" | "future";
+  readonly startDate?: string | undefined;
+  readonly endDate?: string | undefined;
+  readonly completeDate?: string | undefined;
+  readonly goal?: string | undefined;
+}
+
+/**
  * Jira user representation.
  */
 export interface JiraUser {
@@ -90,6 +103,9 @@ export interface JiraIssue {
   readonly updated: string;
   readonly labels: readonly string[];
   readonly components: readonly JiraComponent[];
+  readonly storyPoints?: number | undefined;
+  readonly sprint?: JiraSprint | undefined;
+  readonly sprints?: readonly JiraSprint[] | undefined;
 }
 
 /**
@@ -103,6 +119,7 @@ export interface JiraIssueCompact {
   readonly priority?: string | undefined;
   readonly assignee?: string | undefined;
   readonly issueType: string;
+  readonly storyPoints?: number | undefined;
 }
 
 /**
@@ -161,4 +178,28 @@ export interface JiraCommentsResult {
   readonly startAt: number;
   readonly maxResults: number;
   readonly total: number;
+}
+
+/**
+ * Sprint velocity metrics for a single sprint.
+ */
+export interface SprintVelocityEntry {
+  readonly sprint: JiraSprint;
+  readonly completedPoints: number;
+  readonly completedIssues: number;
+  readonly committedPoints: number;
+  readonly committedIssues: number;
+}
+
+/**
+ * Sprint velocity summary with aggregated metrics.
+ */
+export interface SprintVelocitySummary {
+  readonly projectKey: string;
+  readonly sprintCount: number;
+  readonly sprints: readonly SprintVelocityEntry[];
+  readonly averageVelocity: number;
+  readonly averageCompletedIssues: number;
+  readonly totalCompletedPoints: number;
+  readonly totalCompletedIssues: number;
 }

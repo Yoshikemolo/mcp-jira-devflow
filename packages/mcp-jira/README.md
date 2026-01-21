@@ -227,6 +227,68 @@ Stories should have clear acceptance criteria...
 - "Help me write acceptance criteria for PROJ-123"
 ```
 
+#### `get_sprint_velocity`
+
+Calculates sprint velocity metrics for a project. Returns aggregated metrics optimized for token usage.
+
+```json
+{
+  "projectKey": "PROJ",
+  "sprintCount": 5,
+  "outputMode": "detailed"
+}
+```
+
+**Parameters:**
+- `projectKey` (required): The Jira project key (e.g., "PROJ")
+- `sprintCount` (optional): Number of recent closed sprints to analyze (1-10, default: 5)
+- `outputMode` (optional): Output format - `summary` (averages only), `detailed` (default, per-sprint metrics), or `full` (includes issue list)
+
+**Returns:** Sprint velocity analysis including:
+- **Average Velocity**: Average story points completed per sprint
+- **Completion Rates**: Points completed vs committed per sprint
+- **Issue Counts**: Number of completed vs total issues
+- **Sprint Details**: Per-sprint breakdown (in detailed/full modes)
+- **Issue List**: Compact issue list (in full mode only)
+
+**Output Modes:**
+
+| Mode | Content | Tokens |
+|------|---------|--------|
+| `summary` | Only averages and totals | ~200 |
+| `detailed` | Per-sprint metrics without issues | ~500-1000 |
+| `full` | Includes compact issue list | ~2000-5000 |
+
+**Example Output (detailed):**
+```json
+{
+  "projectKey": "PROJ",
+  "sprintCount": 3,
+  "averageVelocity": 21.3,
+  "averageCompletedIssues": 8.3,
+  "totalCompletedPoints": 64,
+  "totalCompletedIssues": 25,
+  "outputMode": "detailed",
+  "sprints": [
+    {
+      "name": "Sprint 10",
+      "completedPoints": 24,
+      "completedIssues": 9,
+      "committedPoints": 28,
+      "committedIssues": 10,
+      "completionRate": "86%"
+    },
+    ...
+  ]
+}
+```
+
+**Notes:**
+- Uses story points from common custom field locations (`customfield_10016`, etc.)
+- If story points are not found, velocity is calculated by issue count
+- Only analyzes closed sprints
+- Sprint data comes from `customfield_10020` (or similar sprint custom fields)
+
 ## Security
 
 ### Best Practices
@@ -274,13 +336,14 @@ The server verifies API compatibility on connection.
     ├── server.ts             # MCP server entry point (graceful startup)
     ├── server-state.ts       # Runtime state management
     ├── tools/
-    │   ├── index.ts          # State-aware tool registration
-    │   ├── setup-guide.ts    # Setup guide tool
-    │   ├── configure.ts      # Runtime configuration tool
-    │   ├── get-issue.ts      # Get issue tool
-    │   ├── search-jql.ts     # JQL search tool
-    │   ├── get-comments.ts   # Get comments tool
-    │   └── scrum-guidance.ts # SCRUM guidance tool
+    │   ├── index.ts              # State-aware tool registration
+    │   ├── setup-guide.ts        # Setup guide tool
+    │   ├── configure.ts          # Runtime configuration tool
+    │   ├── get-issue.ts          # Get issue tool
+    │   ├── search-jql.ts         # JQL search tool
+    │   ├── get-comments.ts       # Get comments tool
+    │   ├── scrum-guidance.ts     # SCRUM guidance tool
+    │   └── get-sprint-velocity.ts # Sprint velocity metrics tool
     ├── guidance/             # SCRUM guidance module
     │   ├── index.ts          # Module exports
     │   ├── types.ts          # Guidance types
@@ -290,9 +353,9 @@ The server verifies API compatibility on connection.
     ├── config/
     │   └── schema.ts         # Configuration validation
     └── domain/
-        ├── types.ts          # Domain types
+        ├── types.ts          # Domain types (includes JiraSprint, SprintVelocity*)
         ├── jira-client.ts    # Jira API client
-        └── mappers.ts        # Response mappers
+        └── mappers.ts        # Response mappers (includes sprint/storyPoints extraction)
 ```
 
 ## Development

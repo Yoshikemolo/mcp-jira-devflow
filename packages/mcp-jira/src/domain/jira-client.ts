@@ -16,7 +16,13 @@ import type {
   JiraPaginationOptions,
   JiraCommentsResult,
 } from "./types.js";
-import { mapIssue, mapSearchResult, mapCommentsResult } from "./mappers.js";
+import {
+  mapIssue,
+  mapSearchResult,
+  mapCommentsResult,
+  STORY_POINTS_FIELD_CANDIDATES,
+  SPRINT_FIELD_CANDIDATES,
+} from "./mappers.js";
 
 /**
  * Minimum supported Jira API version.
@@ -106,6 +112,28 @@ export interface ConnectionVerification {
   error?: string;
   compatible: boolean;
 }
+
+/**
+ * Default fields to request for issue searches.
+ * Includes standard fields and custom fields for story points and sprints.
+ */
+const DEFAULT_SEARCH_FIELDS = [
+  "summary",
+  "description",
+  "status",
+  "priority",
+  "issuetype",
+  "project",
+  "assignee",
+  "reporter",
+  "created",
+  "updated",
+  "labels",
+  "components",
+  // Include custom fields for story points and sprints
+  ...STORY_POINTS_FIELD_CANDIDATES,
+  ...SPRINT_FIELD_CANDIDATES,
+];
 
 export class JiraClient {
   private readonly config: JiraConfig;
@@ -389,21 +417,7 @@ export class JiraClient {
     const body: Record<string, unknown> = {
       jql,
       maxResults,
-      fields:
-        options?.fields ?? [
-          "summary",
-          "description",
-          "status",
-          "priority",
-          "issuetype",
-          "project",
-          "assignee",
-          "reporter",
-          "created",
-          "updated",
-          "labels",
-          "components",
-        ],
+      fields: options?.fields ?? DEFAULT_SEARCH_FIELDS,
     };
 
     // Use nextPageToken for pagination (new API), fall back to startAt (legacy)

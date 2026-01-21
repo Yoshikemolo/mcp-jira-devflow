@@ -23,6 +23,7 @@ import { getIssueTool, executeGetIssue } from "./get-issue.js";
 import { searchJqlTool, executeSearchJql } from "./search-jql.js";
 import { getCommentsTool, executeGetComments } from "./get-comments.js";
 import { scrumGuidanceTool, executeScrumGuidance } from "./scrum-guidance.js";
+import { sprintVelocityTool, executeSprintVelocity } from "./get-sprint-velocity.js";
 
 /**
  * Tool definition type.
@@ -50,6 +51,7 @@ const jiraTools: ToolDefinition[] = [
   searchJqlTool,
   getCommentsTool,
   scrumGuidanceTool,
+  sprintVelocityTool,
 ];
 
 /**
@@ -159,6 +161,9 @@ export function registerTools(server: Server): void {
       case "jira_scrum_guidance":
         return executeScrumGuidance(client, args);
 
+      case "get_sprint_velocity":
+        return executeSprintVelocity(client, args);
+
       default:
         return {
           content: [
@@ -180,3 +185,4 @@ export { getCommentsTool, executeGetComments } from "./get-comments.js";
 export { setupGuideTool, executeSetupGuide } from "./setup-guide.js";
 export { configureTool, executeConfigure } from "./configure.js";
 export { scrumGuidanceTool, executeScrumGuidance } from "./scrum-guidance.js";
+export { sprintVelocityTool, executeSprintVelocity } from "./get-sprint-velocity.js";
