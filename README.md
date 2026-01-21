@@ -23,7 +23,7 @@ mcp-jira-devflow/
 
 | Package | Description | Status |
 |---------|-------------|--------|
-| [@mcp-jira-devflow/mcp-jira](./packages/mcp-jira/) | Jira API integration | Placeholder |
+| [@mcp-jira-devflow/mcp-jira](./packages/mcp-jira/) | Jira API integration | F001 Implemented |
 | [@mcp-jira-devflow/mcp-devflow](./packages/mcp-devflow/) | Git, PR, and test automation | Placeholder |
 | [@mcp-jira-devflow/shared](./packages/shared/) | Shared utilities | Placeholder |
 
@@ -40,7 +40,7 @@ mcp-jira-devflow/
 
 | ID | Name | Status |
 |----|------|--------|
-| [F001](./features/F001-jira-read/) | Jira Read Operations | Not Started |
+| [F001](./features/F001-jira-read/) | Jira Read Operations | Implemented |
 
 ## Quick Start
 
