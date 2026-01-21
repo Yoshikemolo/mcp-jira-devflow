@@ -18,6 +18,7 @@ import {
 import { JiraClient } from "./domain/jira-client.js";
 import { registerTools } from "./tools/index.js";
 import { setConfigured, setUnconfigured } from "./server-state.js";
+import { startWatcher, stopWatcher, getWatcherConfig } from "./dev/watcher.js";
 
 const SERVER_NAME = "mcp-jira";
 const SERVER_VERSION = "0.1.0";
@@ -77,9 +78,19 @@ async function main(): Promise<void> {
 
   await server.connect(transport);
 
+  // Start development watcher if enabled
+  const watcherConfig = getWatcherConfig();
+  if (watcherConfig.enabled) {
+    startWatcher(server, watcherConfig);
+    console.error(
+      `${SERVER_NAME} development mode enabled (JIRA_MCP_DEV=true)`
+    );
+  }
+
   // Graceful shutdown
   process.on("SIGINT", async () => {
     console.error("Shutting down...");
+    stopWatcher();
     await server.close();
     process.exit(0);
   });

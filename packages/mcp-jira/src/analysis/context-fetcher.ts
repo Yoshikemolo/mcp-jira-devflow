@@ -130,19 +130,9 @@ export async function fetchContext(
         truncationInfo = `Children limited to ${budget.maxChildren} issues`;
       }
     } else if (rootIssue.subtasks.length > 0) {
-      // For regular issues, fetch subtasks if any
-      const subtaskPromises = rootIssue.subtasks
-        .slice(0, budget.maxChildren)
-        .map(async (ref) => {
-          try {
-            return await client.getIssue(ref.key);
-          } catch {
-            return null;
-          }
-        });
-
-      const results = await Promise.all(subtaskPromises);
-      children = results.filter((issue): issue is JiraIssue => issue !== null);
+      // For regular issues, fetch subtasks using JQL search
+      // This ensures story points and sprint fields are included (unlike getIssue)
+      children = await client.getSubtasks(issueKey, budget.maxChildren);
 
       if (rootIssue.subtasks.length > budget.maxChildren) {
         truncated = true;

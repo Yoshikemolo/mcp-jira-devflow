@@ -18,6 +18,13 @@ import { getMissingConfigFields } from "../config/index.js";
 import { setupGuideTool, executeSetupGuide } from "./setup-guide.js";
 import { configureTool, executeConfigure } from "./configure.js";
 
+// Development tools (available when JIRA_MCP_DEV=true)
+import {
+  devReloadTool,
+  executeDevReload,
+  isDevModeEnabled,
+} from "./dev-reload.js";
+
 // Jira tools (require configuration)
 import { getIssueTool, executeGetIssue } from "./get-issue.js";
 import { searchJqlTool, executeSearchJql } from "./search-jql.js";
@@ -43,6 +50,11 @@ interface ToolDefinition {
  * Tools that are always available regardless of configuration state.
  */
 const alwaysAvailableTools: ToolDefinition[] = [setupGuideTool, configureTool];
+
+/**
+ * Development tools (only available when JIRA_MCP_DEV=true).
+ */
+const devTools: ToolDefinition[] = [devReloadTool];
 
 /**
  * Tools that require Jira to be configured.
@@ -101,6 +113,11 @@ export function registerTools(server: Server): void {
       availableTools.push(...jiraTools);
     }
 
+    // Add development tools when dev mode is enabled
+    if (isDevModeEnabled()) {
+      availableTools.push(...devTools);
+    }
+
     return {
       tools: availableTools.map((tool) => ({
         name: tool.name,
@@ -122,6 +139,14 @@ export function registerTools(server: Server): void {
 
       case "jira_configure":
         return executeConfigure(args);
+
+      case "jira_dev_reload":
+        // Dev tool - check if enabled
+        if (isDevModeEnabled()) {
+          return executeDevReload(args);
+        }
+        // Fall through to unknown tool if not in dev mode
+        break;
     }
 
     // Jira tools - require configuration

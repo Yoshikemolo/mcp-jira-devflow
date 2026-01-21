@@ -516,6 +516,48 @@ export class JiraClient {
   }
 
   /**
+   * Gets all subtasks of a parent issue using JQL search.
+   * This method uses searchJql internally, which includes story points and sprint fields.
+   * Used for deep analysis to fetch subtasks with full estimation data.
+   *
+   * @param parentKey - The parent issue key
+   * @param maxResults - Maximum number of subtasks to fetch (default: 100)
+   * @returns Array of subtask issues with story points
+   */
+  async getSubtasks(parentKey: string, maxResults = 100): Promise<JiraIssue[]> {
+    // Validate parent key format
+    if (!/^[A-Z][A-Z0-9]*-\d+$/i.test(parentKey)) {
+      throw new Error(`Invalid parent key format: ${parentKey}`);
+    }
+
+    // Use JQL to find all subtasks of this parent
+    const jql = `parent = ${parentKey} ORDER BY created ASC`;
+
+    const allIssues: JiraIssue[] = [];
+    let nextPageToken: string | undefined;
+
+    // Paginate through all results
+    while (allIssues.length < maxResults) {
+      const batchSize = Math.min(50, maxResults - allIssues.length);
+      const result = await this.searchJql(jql, {
+        maxResults: batchSize,
+        nextPageToken,
+        fields: DEFAULT_SEARCH_FIELDS,
+      });
+
+      allIssues.push(...result.issues);
+
+      if (result.isLast || !result.nextPageToken) {
+        break;
+      }
+
+      nextPageToken = result.nextPageToken;
+    }
+
+    return allIssues;
+  }
+
+  /**
    * Gets all issues that are children of an epic.
    * Used for deep analysis to fetch epic's child issues.
    *
