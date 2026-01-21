@@ -13,6 +13,11 @@ import {
   mapIssue,
   mapIssueCompact,
   mapComment,
+  mapSprint,
+  extractStoryPoints,
+  extractSprints,
+  STORY_POINTS_FIELD_CANDIDATES,
+  SPRINT_FIELD_CANDIDATES,
 } from "../../domain/mappers.js";
 
 describe("mappers", () => {
@@ -437,7 +442,343 @@ describe("mappers", () => {
         priority: undefined,
         assignee: undefined,
         issueType: "Task",
+        storyPoints: undefined,
       });
+    });
+
+    it("should include storyPoints in compact format", () => {
+      const raw = {
+        id: "10001",
+        key: "PROJ-789",
+        self: "https://example.atlassian.net/rest/api/3/issue/10001",
+        fields: {
+          summary: "Task with points",
+          status: {
+            id: "1",
+            name: "Done",
+          },
+          issuetype: {
+            id: "1",
+            name: "Story",
+          },
+          project: {
+            id: "10000",
+            key: "PROJ",
+            name: "My Project",
+          },
+          created: "2024-01-01T00:00:00.000Z",
+          updated: "2024-01-02T00:00:00.000Z",
+          customfield_10016: 5,
+        },
+      };
+
+      const result = mapIssueCompact(raw);
+
+      expect(result.storyPoints).toBe(5);
+    });
+  });
+
+  describe("mapSprint", () => {
+    it("should map a complete sprint", () => {
+      const raw = {
+        id: 123,
+        name: "Sprint 1",
+        state: "closed",
+        startDate: "2024-01-01T00:00:00.000Z",
+        endDate: "2024-01-14T00:00:00.000Z",
+        completeDate: "2024-01-14T12:00:00.000Z",
+        goal: "Complete feature X",
+      };
+
+      const result = mapSprint(raw);
+
+      expect(result).toEqual({
+        id: 123,
+        name: "Sprint 1",
+        state: "closed",
+        startDate: "2024-01-01T00:00:00.000Z",
+        endDate: "2024-01-14T00:00:00.000Z",
+        completeDate: "2024-01-14T12:00:00.000Z",
+        goal: "Complete feature X",
+      });
+    });
+
+    it("should map an active sprint", () => {
+      const raw = {
+        id: 124,
+        name: "Sprint 2",
+        state: "active",
+        startDate: "2024-01-15T00:00:00.000Z",
+        endDate: "2024-01-28T00:00:00.000Z",
+      };
+
+      const result = mapSprint(raw);
+
+      expect(result.id).toBe(124);
+      expect(result.state).toBe("active");
+      expect(result.completeDate).toBeUndefined();
+    });
+
+    it("should map a future sprint", () => {
+      const raw = {
+        id: 125,
+        name: "Sprint 3",
+        state: "future",
+      };
+
+      const result = mapSprint(raw);
+
+      expect(result.state).toBe("future");
+      expect(result.startDate).toBeUndefined();
+    });
+
+    it("should default to future state for unknown states", () => {
+      const raw = {
+        id: 126,
+        name: "Sprint Unknown",
+        state: "unknown_state",
+      };
+
+      const result = mapSprint(raw);
+
+      expect(result.state).toBe("future");
+    });
+  });
+
+  describe("extractStoryPoints", () => {
+    it("should extract story points from first matching custom field", () => {
+      const fields = {
+        customfield_10016: 8,
+        customfield_10026: 5,
+      };
+
+      const result = extractStoryPoints(fields);
+
+      expect(result).toBe(8);
+    });
+
+    it("should return undefined when no story points found", () => {
+      const fields = {
+        summary: "Test",
+        status: { id: "1", name: "Open" },
+      };
+
+      const result = extractStoryPoints(fields);
+
+      expect(result).toBeUndefined();
+    });
+
+    it("should skip non-numeric values", () => {
+      const fields = {
+        customfield_10016: "not a number",
+        customfield_10026: 3,
+      };
+
+      const result = extractStoryPoints(fields);
+
+      expect(result).toBe(3);
+    });
+
+    it("should skip NaN values", () => {
+      const fields = {
+        customfield_10016: NaN,
+        customfield_10026: 5,
+      };
+
+      const result = extractStoryPoints(fields);
+
+      expect(result).toBe(5);
+    });
+
+    it("should handle zero as a valid value", () => {
+      const fields = {
+        customfield_10016: 0,
+      };
+
+      const result = extractStoryPoints(fields);
+
+      expect(result).toBe(0);
+    });
+  });
+
+  describe("extractSprints", () => {
+    it("should extract sprints from custom field array", () => {
+      const fields = {
+        customfield_10020: [
+          {
+            id: 1,
+            name: "Sprint 1",
+            state: "closed",
+            completeDate: "2024-01-14T00:00:00.000Z",
+          },
+          {
+            id: 2,
+            name: "Sprint 2",
+            state: "active",
+          },
+        ],
+      };
+
+      const result = extractSprints(fields);
+
+      expect(result.sprints).toHaveLength(2);
+      expect(result.sprint?.id).toBe(2); // Active sprint is preferred
+    });
+
+    it("should return most recent sprint when no active sprint", () => {
+      const fields = {
+        customfield_10020: [
+          {
+            id: 1,
+            name: "Sprint 1",
+            state: "closed",
+          },
+          {
+            id: 2,
+            name: "Sprint 2",
+            state: "closed",
+          },
+        ],
+      };
+
+      const result = extractSprints(fields);
+
+      expect(result.sprint?.id).toBe(2); // Last in array is most recent
+    });
+
+    it("should return empty object when no sprints found", () => {
+      const fields = {
+        summary: "Test",
+      };
+
+      const result = extractSprints(fields);
+
+      expect(result.sprint).toBeUndefined();
+      expect(result.sprints).toBeUndefined();
+    });
+
+    it("should skip invalid sprint objects", () => {
+      const fields = {
+        customfield_10020: [
+          { invalid: "object" },
+          {
+            id: 1,
+            name: "Sprint 1",
+            state: "active",
+          },
+        ],
+      };
+
+      const result = extractSprints(fields);
+
+      expect(result.sprints).toHaveLength(1);
+      expect(result.sprint?.id).toBe(1);
+    });
+
+    it("should try multiple custom field candidates", () => {
+      const fields = {
+        customfield_10007: [
+          {
+            id: 1,
+            name: "Sprint 1",
+            state: "active",
+          },
+        ],
+      };
+
+      const result = extractSprints(fields);
+
+      expect(result.sprint?.id).toBe(1);
+    });
+  });
+
+  describe("mapIssue with sprint and storyPoints", () => {
+    it("should include storyPoints and sprint in mapped issue", () => {
+      const raw = {
+        id: "10001",
+        key: "PROJ-123",
+        self: "https://example.atlassian.net/rest/api/3/issue/10001",
+        fields: {
+          summary: "Test issue",
+          status: {
+            id: "1",
+            name: "In Progress",
+            statusCategory: { key: "indeterminate" },
+          },
+          issuetype: {
+            id: "1",
+            name: "Story",
+          },
+          project: {
+            id: "10000",
+            key: "PROJ",
+            name: "My Project",
+          },
+          created: "2024-01-01T00:00:00.000Z",
+          updated: "2024-01-02T00:00:00.000Z",
+          customfield_10016: 5,
+          customfield_10020: [
+            {
+              id: 1,
+              name: "Sprint 1",
+              state: "active",
+              startDate: "2024-01-01T00:00:00.000Z",
+            },
+          ],
+        },
+      };
+
+      const result = mapIssue(raw);
+
+      expect(result.storyPoints).toBe(5);
+      expect(result.sprint).toBeDefined();
+      expect(result.sprint?.id).toBe(1);
+      expect(result.sprint?.name).toBe("Sprint 1");
+      expect(result.sprints).toHaveLength(1);
+    });
+
+    it("should handle issue without sprint or storyPoints", () => {
+      const raw = {
+        id: "10001",
+        key: "PROJ-456",
+        self: "https://example.atlassian.net/rest/api/3/issue/10001",
+        fields: {
+          summary: "Simple task",
+          status: {
+            id: "1",
+            name: "Open",
+          },
+          issuetype: {
+            id: "2",
+            name: "Task",
+          },
+          project: {
+            id: "10000",
+            key: "PROJ",
+            name: "My Project",
+          },
+          created: "2024-01-01T00:00:00.000Z",
+          updated: "2024-01-02T00:00:00.000Z",
+        },
+      };
+
+      const result = mapIssue(raw);
+
+      expect(result.storyPoints).toBeUndefined();
+      expect(result.sprint).toBeUndefined();
+      expect(result.sprints).toBeUndefined();
+    });
+  });
+
+  describe("field candidate constants", () => {
+    it("should have story points field candidates", () => {
+      expect(STORY_POINTS_FIELD_CANDIDATES).toContain("customfield_10016");
+      expect(STORY_POINTS_FIELD_CANDIDATES.length).toBeGreaterThan(0);
+    });
+
+    it("should have sprint field candidates", () => {
+      expect(SPRINT_FIELD_CANDIDATES).toContain("customfield_10020");
+      expect(SPRINT_FIELD_CANDIDATES.length).toBeGreaterThan(0);
     });
   });
 });

@@ -17,6 +17,7 @@ import type {
   JiraComponent,
   JiraSearchResult,
   JiraCommentsResult,
+  JiraSprint,
 } from "./types.js";
 
 /**
@@ -75,6 +76,16 @@ interface RawComment {
   updated: string;
 }
 
+interface RawSprint {
+  id: number;
+  name: string;
+  state: string;
+  startDate?: string;
+  endDate?: string;
+  completeDate?: string;
+  goal?: string;
+}
+
 interface RawIssue {
   id: string;
   key: string;
@@ -92,6 +103,8 @@ interface RawIssue {
     updated: string;
     labels?: string[];
     components?: RawComponent[];
+    // Custom fields - index signature for dynamic field names
+    [key: string]: unknown;
   };
 }
 
@@ -174,6 +187,92 @@ export function mapComponent(raw: RawComponent): JiraComponent {
 }
 
 /**
+ * Maps a raw sprint to domain sprint.
+ */
+export function mapSprint(raw: RawSprint): JiraSprint {
+  const validStates = ["active", "closed", "future"] as const;
+  const state = validStates.includes(raw.state as typeof validStates[number])
+    ? (raw.state as JiraSprint["state"])
+    : "future";
+
+  return {
+    id: raw.id,
+    name: raw.name,
+    state,
+    startDate: raw.startDate,
+    endDate: raw.endDate,
+    completeDate: raw.completeDate,
+    goal: raw.goal,
+  };
+}
+
+/**
+ * Common custom field IDs for story points across Jira instances.
+ * These are checked in order, the first match wins.
+ */
+export const STORY_POINTS_FIELD_CANDIDATES = [
+  "customfield_10016", // Most common in Jira Cloud
+  "customfield_10026",
+  "customfield_10028",
+  "customfield_10034",
+] as const;
+
+/**
+ * Common custom field IDs for sprint across Jira instances.
+ * These are checked in order, the first match wins.
+ */
+export const SPRINT_FIELD_CANDIDATES = [
+  "customfield_10020", // Most common in Jira Cloud
+  "customfield_10007",
+  "customfield_10104",
+] as const;
+
+/**
+ * Extracts story points from custom fields.
+ * Tries multiple common field IDs and returns the first valid number found.
+ */
+export function extractStoryPoints(fields: Record<string, unknown>): number | undefined {
+  for (const fieldId of STORY_POINTS_FIELD_CANDIDATES) {
+    const value = fields[fieldId];
+    if (typeof value === "number" && !isNaN(value)) {
+      return value;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Extracts sprint data from custom fields.
+ * Tries multiple common field IDs.
+ * Returns the active sprint if available, otherwise the most recent sprint.
+ */
+export function extractSprints(fields: Record<string, unknown>): {
+  sprint?: JiraSprint | undefined;
+  sprints?: JiraSprint[] | undefined;
+} {
+  for (const fieldId of SPRINT_FIELD_CANDIDATES) {
+    const value = fields[fieldId];
+    if (Array.isArray(value) && value.length > 0) {
+      // Sprint field is an array of sprint objects
+      const sprints = value
+        .filter((s): s is RawSprint => s && typeof s === "object" && "id" in s && "name" in s)
+        .map(mapSprint);
+
+      if (sprints.length === 0) {
+        continue;
+      }
+
+      // Return the active sprint if there is one, otherwise the last (most recent) sprint
+      const activeSprint = sprints.find((s) => s.state === "active");
+      const sprint = activeSprint ?? sprints[sprints.length - 1];
+
+      return { sprint, sprints };
+    }
+  }
+  return {};
+}
+
+/**
  * Extracts plain text from Jira content (handles ADF and plain text).
  */
 function extractTextContent(content: unknown): string | undefined {
@@ -209,6 +308,8 @@ function extractTextContent(content: unknown): string | undefined {
  */
 export function mapIssue(raw: RawIssue): JiraIssue {
   const fields = raw.fields;
+  const storyPoints = extractStoryPoints(fields);
+  const { sprint, sprints } = extractSprints(fields);
 
   return {
     id: raw.id,
@@ -226,6 +327,9 @@ export function mapIssue(raw: RawIssue): JiraIssue {
     updated: fields.updated,
     labels: fields.labels ?? [],
     components: (fields.components ?? []).map(mapComponent),
+    storyPoints,
+    sprint,
+    sprints,
   };
 }
 
@@ -235,6 +339,7 @@ export function mapIssue(raw: RawIssue): JiraIssue {
  */
 export function mapIssueCompact(raw: RawIssue): JiraIssueCompact {
   const fields = raw.fields;
+  const storyPoints = extractStoryPoints(fields);
 
   return {
     key: raw.key,
@@ -243,6 +348,7 @@ export function mapIssueCompact(raw: RawIssue): JiraIssueCompact {
     priority: fields.priority?.name,
     assignee: fields.assignee?.displayName,
     issueType: fields.issuetype.name,
+    storyPoints,
   };
 }
 
