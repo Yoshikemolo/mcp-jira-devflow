@@ -7,6 +7,13 @@ export {
   AuthConfigSchema,
   loadConfigFromEnv,
   validateConfig,
+  tryLoadConfigFromEnv,
+  getMissingConfigFields,
+  createConfig,
 } from "./schema.js";
 
-export type { JiraConfig, AuthConfig } from "./schema.js";
+export type {
+  JiraConfig,
+  AuthConfig,
+  MissingConfigField,
+} from "./schema.js";

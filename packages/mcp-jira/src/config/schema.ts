@@ -95,3 +95,96 @@ export function loadConfigFromEnv(): JiraConfig {
 export function validateConfig(config: unknown): JiraConfig {
   return JiraConfigSchema.parse(config);
 }
+
+/**
+ * Missing configuration field info.
+ */
+export interface MissingConfigField {
+  name: string;
+  envVar: string;
+  description: string;
+}
+
+/**
+ * Gets list of missing required configuration fields.
+ */
+export function getMissingConfigFields(): MissingConfigField[] {
+  const missing: MissingConfigField[] = [];
+
+  if (!process.env["JIRA_BASE_URL"]) {
+    missing.push({
+      name: "baseUrl",
+      envVar: "JIRA_BASE_URL",
+      description: "Jira instance URL (e.g., https://company.atlassian.net)",
+    });
+  }
+
+  if (!process.env["JIRA_USER_EMAIL"]) {
+    missing.push({
+      name: "email",
+      envVar: "JIRA_USER_EMAIL",
+      description: "Your Jira account email address",
+    });
+  }
+
+  if (!process.env["JIRA_API_TOKEN"]) {
+    missing.push({
+      name: "apiToken",
+      envVar: "JIRA_API_TOKEN",
+      description: "Your Jira API token",
+    });
+  }
+
+  return missing;
+}
+
+/**
+ * Attempts to load configuration from environment variables.
+ * Returns the config if successful, or undefined if required variables are missing.
+ * Does NOT throw - use this for graceful startup.
+ */
+export function tryLoadConfigFromEnv(): JiraConfig | undefined {
+  const missing = getMissingConfigFields();
+  if (missing.length > 0) {
+    return undefined;
+  }
+
+  const rawConfig = {
+    baseUrl: process.env["JIRA_BASE_URL"],
+    auth: {
+      type: "basic" as const,
+      email: process.env["JIRA_USER_EMAIL"],
+      apiToken: process.env["JIRA_API_TOKEN"],
+    },
+    timeout: process.env["JIRA_TIMEOUT"]
+      ? parseInt(process.env["JIRA_TIMEOUT"], 10)
+      : undefined,
+    maxRetries: process.env["JIRA_MAX_RETRIES"]
+      ? parseInt(process.env["JIRA_MAX_RETRIES"], 10)
+      : undefined,
+  };
+
+  const result = JiraConfigSchema.safeParse(rawConfig);
+  return result.success ? result.data : undefined;
+}
+
+/**
+ * Creates a JiraConfig from provided values.
+ * Used by the jira_configure tool for runtime configuration.
+ */
+export function createConfig(params: {
+  baseUrl: string;
+  email: string;
+  apiToken: string;
+}): JiraConfig {
+  const rawConfig = {
+    baseUrl: params.baseUrl,
+    auth: {
+      type: "basic" as const,
+      email: params.email,
+      apiToken: params.apiToken,
+    },
+  };
+
+  return JiraConfigSchema.parse(rawConfig);
+}

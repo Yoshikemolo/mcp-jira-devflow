@@ -1,0 +1,34 @@
+# MCP Jira Server - Docker Compose
+#
+# For local development and testing.
+# Create a .env file with your Jira credentials.
+
+services:
+  mcp-jira:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: mcp-jira:latest
+    container_name: mcp-jira
+
+    # Load credentials from .env file
+    env_file:
+      - .env
+
+    # MCP uses stdio - enable interactive mode
+    stdin_open: true
+    tty: true
+
+    # Security: Read-only filesystem
+    read_only: true
+
+    # Security: No new privileges
+    security_opt:
+      - no-new-privileges:true
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+          cpus: "0.5"

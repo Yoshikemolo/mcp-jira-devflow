@@ -2,6 +2,7 @@
  * Tools Registration
  *
  * Registers all MCP tools with the server.
+ * Supports both configured and unconfigured server states.
  */
 
 import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -9,25 +10,93 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import type { JiraClient } from "../domain/jira-client.js";
 
+import { getServerState, getClient } from "../server-state.js";
+import { getMissingConfigFields } from "../config/index.js";
+
+// Setup tools (always available)
+import { setupGuideTool, executeSetupGuide } from "./setup-guide.js";
+import { configureTool, executeConfigure } from "./configure.js";
+
+// Jira tools (require configuration)
 import { getIssueTool, executeGetIssue } from "./get-issue.js";
 import { searchJqlTool, executeSearchJql } from "./search-jql.js";
 import { getCommentsTool, executeGetComments } from "./get-comments.js";
 
 /**
- * All available tools.
+ * Tool definition type.
  */
-const tools = [getIssueTool, searchJqlTool, getCommentsTool];
+interface ToolDefinition {
+  name: string;
+  description: string;
+  inputSchema: {
+    type: "object";
+    properties: Record<string, unknown>;
+    required?: string[];
+  };
+}
+
+/**
+ * Tools that are always available regardless of configuration state.
+ */
+const alwaysAvailableTools: ToolDefinition[] = [setupGuideTool, configureTool];
+
+/**
+ * Tools that require Jira to be configured.
+ */
+const jiraTools: ToolDefinition[] = [
+  getIssueTool,
+  searchJqlTool,
+  getCommentsTool,
+];
+
+/**
+ * Jira tool names for quick lookup.
+ */
+const jiraToolNames = new Set(jiraTools.map((t) => t.name));
+
+/**
+ * Generates an error response for unconfigured state.
+ */
+function getUnconfiguredError(): {
+  content: Array<{ type: "text"; text: string }>;
+  isError: boolean;
+} {
+  const missing = getMissingConfigFields();
+  const missingList = missing.map((f) => f.envVar).join(", ");
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: `Jira is not configured. Missing: ${missingList}
+
+Use \`jira_setup_guide\` for setup instructions, or \`jira_configure\` to set credentials now.`,
+      },
+    ],
+    isError: true,
+  };
+}
 
 /**
  * Registers all Jira tools with the MCP server.
+ * Tools are state-aware: some require configuration, others are always available.
  */
-export function registerTools(server: Server, client: JiraClient): void {
-  // Handle list_tools request
+export function registerTools(server: Server): void {
+  // Handle list_tools request - returns tools based on current state
   server.setRequestHandler(ListToolsRequestSchema, async () => {
+    const state = getServerState();
+
+    // Always show setup tools
+    const availableTools = [...alwaysAvailableTools];
+
+    // Add Jira tools only when configured
+    if (state.status === "configured") {
+      availableTools.push(...jiraTools);
+    }
+
     return {
-      tools: tools.map((tool) => ({
+      tools: availableTools.map((tool) => ({
         name: tool.name,
         description: tool.description,
         inputSchema: tool.inputSchema,
@@ -38,6 +107,42 @@ export function registerTools(server: Server, client: JiraClient): void {
   // Handle call_tool request
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
+    const state = getServerState();
+
+    // Setup tools - always available
+    switch (name) {
+      case "jira_setup_guide":
+        return executeSetupGuide();
+
+      case "jira_configure":
+        return executeConfigure(args);
+    }
+
+    // Jira tools - require configuration
+    if (state.status !== "configured") {
+      // Check if this is a known Jira tool
+      if (jiraToolNames.has(name)) {
+        return getUnconfiguredError();
+      }
+
+      // Unknown tool
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Unknown tool: ${name}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+
+    // Server is configured - get client
+    const client = getClient();
+    if (!client) {
+      // This shouldn't happen if state is configured, but handle gracefully
+      return getUnconfiguredError();
+    }
 
     switch (name) {
       case "get_issue":
@@ -67,3 +172,5 @@ export function registerTools(server: Server, client: JiraClient): void {
 export { getIssueTool, executeGetIssue } from "./get-issue.js";
 export { searchJqlTool, executeSearchJql } from "./search-jql.js";
 export { getCommentsTool, executeGetComments } from "./get-comments.js";
+export { setupGuideTool, executeSetupGuide } from "./setup-guide.js";
+export { configureTool, executeConfigure } from "./configure.js";

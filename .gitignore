@@ -40,3 +40,6 @@ logs/
 
 # Coverage
 coverage/
+
+# Claude Code - local settings
+.claude/

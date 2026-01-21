@@ -3,13 +3,21 @@
  *
  * Entry point for the Jira MCP server.
  * Provides tools for reading Jira issues, searching with JQL, and retrieving comments.
+ *
+ * The server supports graceful startup:
+ * - With valid credentials: All Jira tools are available
+ * - Without credentials: Setup tools guide the user through configuration
  */
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import { loadConfigFromEnv } from "./config/index.js";
+import {
+  tryLoadConfigFromEnv,
+  getMissingConfigFields,
+} from "./config/index.js";
 import { JiraClient } from "./domain/jira-client.js";
 import { registerTools } from "./tools/index.js";
+import { setConfigured, setUnconfigured } from "./server-state.js";
 
 const SERVER_NAME = "mcp-jira";
 const SERVER_VERSION = "0.1.0";
@@ -17,7 +25,7 @@ const SERVER_VERSION = "0.1.0";
 /**
  * Creates and configures the MCP server instance.
  */
-function createServer(client: JiraClient): Server {
+function createServer(): Server {
   const server = new Server(
     {
       name: SERVER_NAME,
@@ -30,8 +38,8 @@ function createServer(client: JiraClient): Server {
     }
   );
 
-  // Register all Jira tools
-  registerTools(server, client);
+  // Register all tools (state-aware)
+  registerTools(server);
 
   return server;
 }
@@ -40,35 +48,34 @@ function createServer(client: JiraClient): Server {
  * Main entry point.
  */
 async function main(): Promise<void> {
-  // Load configuration from environment
-  let config;
-  try {
-    config = loadConfigFromEnv();
-  } catch (error) {
+  // Try to load configuration from environment (graceful - no exit on failure)
+  const config = tryLoadConfigFromEnv();
+
+  if (config) {
+    // Configuration available - create client and set configured state
+    const client = new JiraClient(config);
+    setConfigured(config, client);
     console.error(
-      "Configuration error:",
-      error instanceof Error ? error.message : "Unknown error"
+      `${SERVER_NAME} v${SERVER_VERSION} started (configured: ${config.baseUrl})`
+    );
+  } else {
+    // No configuration - start in unconfigured mode
+    setUnconfigured();
+    const missing = getMissingConfigFields();
+    const missingVars = missing.map((f) => f.envVar).join(", ");
+    console.error(
+      `${SERVER_NAME} v${SERVER_VERSION} started (unconfigured - missing: ${missingVars})`
     );
     console.error(
-      "\nRequired environment variables:\n" +
-        "  JIRA_BASE_URL - Jira instance URL (e.g., https://company.atlassian.net)\n" +
-        "  JIRA_USER_EMAIL - Your Jira email\n" +
-        "  JIRA_API_TOKEN - Your Jira API token"
+      "Use jira_setup_guide tool for setup instructions, or jira_configure to set credentials."
     );
-    process.exit(1);
   }
 
-  // Create Jira client
-  const client = new JiraClient(config);
-
   // Create and start server
-  const server = createServer(client);
+  const server = createServer();
   const transport = new StdioServerTransport();
 
   await server.connect(transport);
-
-  // Log startup (to stderr to not interfere with MCP protocol)
-  console.error(`${SERVER_NAME} v${SERVER_VERSION} started`);
 
   // Graceful shutdown
   process.on("SIGINT", async () => {
