@@ -41,6 +41,7 @@ mcp-jira-devflow/
 | ID | Name | Status |
 |----|------|--------|
 | [F001](./features/F001-jira-read/) | Jira Read Operations | Implemented |
+| F002 | SCRUM Guidance | Implemented |
 
 ## Quick Start
 
@@ -77,6 +78,18 @@ JIRA_BASE_URL=https://your-domain.atlassian.net
 JIRA_API_TOKEN=your-api-token
 JIRA_USER_EMAIL=your-email@example.com
 ```
+
+### Try SCRUM Guidance
+
+Test the SCRUM guidance tool with the interactive CLI:
+
+```bash
+cd packages/mcp-jira
+pnpm build
+node test-guidance.mjs
+```
+
+The script will prompt for Jira credentials and let you analyze issues for SCRUM best practices.
 
 ## Documentation
 
