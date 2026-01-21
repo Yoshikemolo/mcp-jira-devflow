@@ -140,7 +140,7 @@ MCP Jira DevFlow follows the principle of least privilege. Understanding which o
 
 2. **Apply project restrictions**: Configure the service account with access only to projects that require AI automation. Jira Cloud allows project-level permission schemes.
 
-3. **Enable dry-run mode**: Write operations like `create_issue`, `update_issue`, and `move_issues_to_sprint` support `dryRun: true` to validate operations without executing them.
+3. **Use dry-run mode when available**: Some write operations (`create_issue`, `update_issue`, `move_issues_to_sprint`, `update_sprint`) support `dryRun: true` to validate without executing. Note that `transition_issue` does not support dry-run.
 
 4. **Rotate API tokens**: Jira API tokens do not expire automatically. Establish a rotation policy (e.g., quarterly) and store tokens securely using environment variables or secret managers.
 
