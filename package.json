@@ -1,0 +1,36 @@
+{
+  "name": "mcp-jira-devflow",
+  "version": "0.1.0",
+  "description": "Agent-oriented MCP servers for Jira integration and DevFlow automation",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "build": "pnpm -r build",
+    "clean": "pnpm -r clean",
+    "lint": "pnpm -r lint",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck"
+  },
+  "keywords": [
+    "mcp",
+    "jira",
+    "devflow",
+    "automation",
+    "agents"
+  ],
+  "author": "Jorge Rodriguez Rengel <info@ximplicity.es>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yoshikemolo/mcp-jira-devflow.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Yoshikemolo/mcp-jira-devflow/issues"
+  },
+  "homepage": "https://github.com/Yoshikemolo/mcp-jira-devflow#readme"
+}
