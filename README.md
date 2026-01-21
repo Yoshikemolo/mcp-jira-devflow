@@ -43,6 +43,7 @@ Whether you are managing a single project or orchestrating multiple enterprise a
 | `jira_scrum_guidance` | SCRUM best-practice analysis with severity-ranked recommendations |
 | `get_sprint_velocity` | Team velocity metrics and sprint performance analysis |
 | `jira_deep_analysis` | Hierarchical analysis with metrics aggregation and anomaly detection |
+| `jira_dev_reload` | Development only: triggers graceful server restart to apply code changes |
 
 ---
 
@@ -158,6 +159,52 @@ Add to `~/.claude/claude_desktop_config.json`:
   }
 }
 ```
+
+### Development Mode
+
+For contributors and developers working on the MCP server, a hot-reload mode is available that watches for file changes and notifies connected clients.
+
+#### Environment Variables
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `JIRA_MCP_DEV` | Enable development mode with file watcher | `false` |
+| `JIRA_MCP_AUTO_RESTART` | Automatically restart server on file changes | `false` |
+| `JIRA_MCP_DEBOUNCE_MS` | Debounce delay for file change detection (ms) | `500` |
+
+#### Development Workflow
+
+1. Enable development mode in your Claude Desktop config:
+
+```json
+{
+  "mcpServers": {
+    "jira": {
+      "command": "node",
+      "args": ["/path/to/mcp-jira-devflow/packages/mcp-jira/dist/server.js"],
+      "env": {
+        "JIRA_BASE_URL": "https://your-company.atlassian.net",
+        "JIRA_USER_EMAIL": "your-email@company.com",
+        "JIRA_API_TOKEN": "your-api-token",
+        "JIRA_MCP_DEV": "true"
+      }
+    }
+  }
+}
+```
+
+2. Run TypeScript in watch mode:
+
+```bash
+cd packages/mcp-jira
+pnpm build --watch
+```
+
+3. When you make changes:
+   - TypeScript compiles to `dist/`
+   - The watcher detects changes and logs them
+   - Use the `jira_dev_reload` tool to trigger a graceful restart
+   - Claude Code automatically reconnects with the updated code
 
 ---
 
