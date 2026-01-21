@@ -138,7 +138,7 @@ const DEFAULT_SEARCH_FIELDS = [
 ];
 
 /**
- * Extended fields for deep analysis (includes parent, subtasks, links).
+ * Extended fields for deep analysis including hierarchy and links.
  */
 const EXTENDED_ISSUE_FIELDS = [
   ...DEFAULT_SEARCH_FIELDS,
@@ -482,11 +482,11 @@ export class JiraClient {
   }
 
   /**
-   * Gets a single issue with extended data (parent, subtasks, links).
-   * Used for deep analysis of issue hierarchies.
+   * Gets a single issue with extended data including parent, subtasks, and links.
+   * Used for deep analysis to understand issue hierarchy.
    *
    * @param issueKey - The issue key (e.g., "PROJECT-123")
-   * @returns The extended issue details with hierarchy info
+   * @returns The extended issue details with hierarchy information
    * @throws JiraNotFoundError if the issue doesn't exist
    */
   async getIssueExtended(issueKey: string): Promise<JiraIssueExtended> {
@@ -516,45 +516,43 @@ export class JiraClient {
   }
 
   /**
-   * Gets all children of an epic.
-   * Uses JQL search with "parentEpic" or Epic Link custom field.
+   * Gets all issues that are children of an epic.
+   * Used for deep analysis to fetch epic's child issues.
    *
    * @param epicKey - The epic issue key
    * @param maxResults - Maximum number of children to fetch (default: 100)
    * @returns Array of child issues
    */
-  async getEpicChildren(
-    epicKey: string,
-    maxResults = 100
-  ): Promise<JiraIssue[]> {
-    // Validate issue key format
+  async getEpicChildren(epicKey: string, maxResults = 100): Promise<JiraIssue[]> {
+    // Validate epic key format
     if (!/^[A-Z][A-Z0-9]*-\d+$/i.test(epicKey)) {
-      throw new Error(`Invalid issue key format: ${epicKey}`);
+      throw new Error(`Invalid epic key format: ${epicKey}`);
     }
+
+    // Use JQL to find all issues with this epic as parent
+    // This works for both classic epics ("Epic Link") and next-gen epics (parent field)
+    const jql = `"Epic Link" = ${epicKey} OR parent = ${epicKey} ORDER BY created ASC`;
 
     const allIssues: JiraIssue[] = [];
     let nextPageToken: string | undefined;
-    let pagesLoaded = 0;
-    const maxPages = Math.ceil(maxResults / 50);
 
-    // JQL to find children of the epic
-    // "parentEpic" works for next-gen projects, Epic Link custom field for classic
-    const jql = `"parentEpic" = "${epicKey}" OR "Epic Link" = "${epicKey}" ORDER BY created ASC`;
-
-    do {
+    // Paginate through all results
+    while (allIssues.length < maxResults) {
+      const batchSize = Math.min(50, maxResults - allIssues.length);
       const result = await this.searchJql(jql, {
-        maxResults: Math.min(50, maxResults - allIssues.length),
+        maxResults: batchSize,
         nextPageToken,
+        fields: DEFAULT_SEARCH_FIELDS,
       });
 
       allIssues.push(...result.issues);
-      nextPageToken = result.nextPageToken;
-      pagesLoaded++;
 
-      if (allIssues.length >= maxResults) {
+      if (result.isLast || !result.nextPageToken) {
         break;
       }
-    } while (nextPageToken && pagesLoaded < maxPages);
+
+      nextPageToken = result.nextPageToken;
+    }
 
     return allIssues;
   }
