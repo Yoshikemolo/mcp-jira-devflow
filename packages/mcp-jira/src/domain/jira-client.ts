@@ -23,6 +23,14 @@ import type {
   UpdateIssueResult,
   TransitionIssueResult,
   JiraTransitionsResult,
+  JiraBoardsResult,
+  JiraBoard,
+  JiraSprintsResult,
+  JiraSprintExtended,
+  MoveIssuesToSprintInput,
+  MoveIssuesToSprintResult,
+  UpdateSprintInput,
+  UpdateSprintResult,
 } from "./types.js";
 import {
   mapIssue,
@@ -30,6 +38,10 @@ import {
   mapSearchResult,
   mapCommentsResult,
   mapTransitionsResult,
+  mapBoardsResult,
+  mapBoard,
+  mapSprintsResult,
+  mapSprintExtended,
   textToAdf,
   STORY_POINTS_FIELD_CANDIDATES,
   SPRINT_FIELD_CANDIDATES,
@@ -40,6 +52,19 @@ import {
  */
 const MIN_API_VERSION = "3";
 const SUPPORTED_DEPLOYMENT = "Cloud";
+
+/**
+ * Jira API types.
+ */
+type JiraApiType = "rest" | "agile";
+
+/**
+ * API base paths for different Jira APIs.
+ */
+const API_BASES: Record<JiraApiType, string> = {
+  rest: "/rest/api/3",
+  agile: "/rest/agile/1.0",
+};
 
 /**
  * Error thrown when Jira API returns an error.
@@ -76,6 +101,52 @@ export class JiraAuthError extends JiraApiError {
   constructor() {
     super("Authentication failed", 401);
     this.name = "JiraAuthError";
+  }
+}
+
+/**
+ * Error thrown when a board is not found.
+ */
+export class JiraBoardNotFoundError extends JiraApiError {
+  readonly boardId: number;
+
+  constructor(boardId: number) {
+    super(`Board with ID '${boardId}' not found`, 404);
+    this.name = "JiraBoardNotFoundError";
+    this.boardId = boardId;
+  }
+}
+
+/**
+ * Error thrown when a sprint is not found.
+ */
+export class JiraSprintNotFoundError extends JiraApiError {
+  readonly sprintId: number;
+
+  constructor(sprintId: number) {
+    super(`Sprint with ID '${sprintId}' not found`, 404);
+    this.name = "JiraSprintNotFoundError";
+    this.sprintId = sprintId;
+  }
+}
+
+/**
+ * Error thrown for invalid sprint state transitions.
+ */
+export class JiraSprintStateError extends JiraApiError {
+  readonly sprintId: number;
+  readonly currentState: string;
+  readonly targetState: string;
+
+  constructor(sprintId: number, currentState: string, targetState: string) {
+    super(
+      `Cannot transition sprint ${sprintId} from '${currentState}' to '${targetState}'`,
+      400
+    );
+    this.name = "JiraSprintStateError";
+    this.sprintId = sprintId;
+    this.currentState = currentState;
+    this.targetState = targetState;
   }
 }
 
@@ -231,6 +302,10 @@ export class JiraClient {
 
   /**
    * Makes an authenticated request to the Jira API.
+   *
+   * @param method - HTTP method
+   * @param path - API path (without base)
+   * @param options - Request options including params, body, and API type
    */
   private async request<T>(
     method: string,
@@ -238,9 +313,11 @@ export class JiraClient {
     options?: {
       params?: Record<string, string | number | undefined>;
       body?: unknown;
+      api?: JiraApiType;
     }
   ): Promise<T> {
-    const url = new URL(`${this.config.baseUrl}/rest/api/3${path}`);
+    const apiBase = API_BASES[options?.api ?? "rest"];
+    const url = new URL(`${this.config.baseUrl}${apiBase}${path}`);
 
     // Add query parameters
     if (options?.params) {
@@ -833,6 +910,293 @@ export class JiraClient {
     } catch (error) {
       if (error instanceof JiraApiError && error.statusCode === 404) {
         throw new JiraNotFoundError(input.issueKey);
+      }
+      throw error;
+    }
+  }
+
+  // ============================================================================
+  // Board and Sprint Operations (Agile API)
+  // ============================================================================
+
+  /**
+   * Lists boards with optional filters.
+   *
+   * @param options - Filter and pagination options
+   * @returns Paginated boards result
+   */
+  async getBoards(options?: {
+    projectKeyOrId?: string;
+    type?: "scrum" | "kanban" | "simple";
+    name?: string;
+    startAt?: number;
+    maxResults?: number;
+  }): Promise<JiraBoardsResult> {
+    const params: Record<string, string | number | undefined> = {
+      startAt: options?.startAt ?? 0,
+      maxResults: options?.maxResults ?? 50,
+    };
+
+    if (options?.projectKeyOrId) {
+      params["projectKeyOrId"] = options.projectKeyOrId;
+    }
+
+    if (options?.type) {
+      params["type"] = options.type;
+    }
+
+    if (options?.name) {
+      params["name"] = options.name;
+    }
+
+    const raw = await this.request<unknown>("GET", "/board", {
+      params,
+      api: "agile",
+    });
+
+    return mapBoardsResult(raw as Parameters<typeof mapBoardsResult>[0]);
+  }
+
+  /**
+   * Gets a single board by ID.
+   *
+   * @param boardId - The board ID
+   * @returns The board details
+   * @throws JiraBoardNotFoundError if the board doesn't exist
+   */
+  async getBoard(boardId: number): Promise<JiraBoard> {
+    try {
+      const raw = await this.request<unknown>("GET", `/board/${boardId}`, {
+        api: "agile",
+      });
+
+      return mapBoard(raw as Parameters<typeof mapBoard>[0]);
+    } catch (error) {
+      if (error instanceof JiraApiError && error.statusCode === 404) {
+        throw new JiraBoardNotFoundError(boardId);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Lists sprints for a board.
+   *
+   * @param boardId - The board ID
+   * @param options - Filter and pagination options
+   * @returns Paginated sprints result
+   * @throws JiraBoardNotFoundError if the board doesn't exist
+   */
+  async getBoardSprints(
+    boardId: number,
+    options?: {
+      state?: "future" | "active" | "closed" | "all";
+      startAt?: number;
+      maxResults?: number;
+    }
+  ): Promise<JiraSprintsResult> {
+    try {
+      const params: Record<string, string | number | undefined> = {
+        startAt: options?.startAt ?? 0,
+        maxResults: options?.maxResults ?? 50,
+      };
+
+      if (options?.state && options.state !== "all") {
+        params["state"] = options.state;
+      }
+
+      const raw = await this.request<unknown>(
+        "GET",
+        `/board/${boardId}/sprint`,
+        {
+          params,
+          api: "agile",
+        }
+      );
+
+      return mapSprintsResult(raw as Parameters<typeof mapSprintsResult>[0]);
+    } catch (error) {
+      if (error instanceof JiraApiError && error.statusCode === 404) {
+        throw new JiraBoardNotFoundError(boardId);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Gets a single sprint by ID.
+   *
+   * @param sprintId - The sprint ID
+   * @returns The sprint details
+   * @throws JiraSprintNotFoundError if the sprint doesn't exist
+   */
+  async getSprint(sprintId: number): Promise<JiraSprintExtended> {
+    try {
+      const raw = await this.request<unknown>("GET", `/sprint/${sprintId}`, {
+        api: "agile",
+      });
+
+      return mapSprintExtended(raw as Parameters<typeof mapSprintExtended>[0]);
+    } catch (error) {
+      if (error instanceof JiraApiError && error.statusCode === 404) {
+        throw new JiraSprintNotFoundError(sprintId);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Gets issues in a sprint.
+   *
+   * @param sprintId - The sprint ID
+   * @param options - Pagination and filter options
+   * @returns Search result with issues
+   * @throws JiraSprintNotFoundError if the sprint doesn't exist
+   */
+  async getSprintIssues(
+    sprintId: number,
+    options?: {
+      startAt?: number;
+      maxResults?: number;
+      jql?: string;
+    }
+  ): Promise<JiraSearchResult> {
+    try {
+      const params: Record<string, string | number | undefined> = {
+        startAt: options?.startAt ?? 0,
+        maxResults: options?.maxResults ?? 50,
+        fields: [...STORY_POINTS_FIELD_CANDIDATES, ...SPRINT_FIELD_CANDIDATES].join(","),
+      };
+
+      if (options?.jql) {
+        params["jql"] = options.jql;
+      }
+
+      const raw = await this.request<unknown>(
+        "GET",
+        `/sprint/${sprintId}/issue`,
+        {
+          params,
+          api: "agile",
+        }
+      );
+
+      return mapSearchResult(raw as Parameters<typeof mapSearchResult>[0]);
+    } catch (error) {
+      if (error instanceof JiraApiError && error.statusCode === 404) {
+        throw new JiraSprintNotFoundError(sprintId);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Moves issues to a sprint.
+   *
+   * @param input - The move issues input
+   * @returns The result of the operation
+   * @throws JiraSprintNotFoundError if the sprint doesn't exist
+   */
+  async moveIssuesToSprint(
+    input: MoveIssuesToSprintInput
+  ): Promise<MoveIssuesToSprintResult> {
+    try {
+      await this.request<void>(
+        "POST",
+        `/sprint/${input.sprintId}/issue`,
+        {
+          body: {
+            issues: [...input.issueKeys],
+          },
+          api: "agile",
+        }
+      );
+
+      return {
+        success: true,
+        sprintId: input.sprintId,
+        movedIssues: [...input.issueKeys],
+      };
+    } catch (error) {
+      if (error instanceof JiraApiError && error.statusCode === 404) {
+        throw new JiraSprintNotFoundError(input.sprintId);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Updates a sprint.
+   *
+   * @param input - The update sprint input
+   * @returns The updated sprint
+   * @throws JiraSprintNotFoundError if the sprint doesn't exist
+   * @throws JiraSprintStateError for invalid state transitions
+   */
+  async updateSprint(input: UpdateSprintInput): Promise<UpdateSprintResult> {
+    // First, get the current sprint to validate state transition
+    const currentSprint = await this.getSprint(input.sprintId);
+
+    // Validate state transition if state is being changed
+    if (input.state && input.state !== currentSprint.state) {
+      // Valid transitions:
+      // future -> active (start sprint)
+      // active -> closed (complete sprint)
+      const validTransitions: Record<string, string[]> = {
+        future: ["active"],
+        active: ["closed"],
+        closed: [], // Cannot transition from closed
+      };
+
+      if (!validTransitions[currentSprint.state]?.includes(input.state)) {
+        throw new JiraSprintStateError(
+          input.sprintId,
+          currentSprint.state,
+          input.state
+        );
+      }
+    }
+
+    // Build the update body
+    const body: Record<string, unknown> = {};
+
+    if (input.name !== undefined) {
+      body["name"] = input.name;
+    }
+
+    if (input.startDate !== undefined) {
+      body["startDate"] = input.startDate;
+    }
+
+    if (input.endDate !== undefined) {
+      body["endDate"] = input.endDate;
+    }
+
+    if (input.goal !== undefined) {
+      body["goal"] = input.goal;
+    }
+
+    if (input.state !== undefined) {
+      body["state"] = input.state;
+    }
+
+    try {
+      const raw = await this.request<unknown>(
+        "PUT",
+        `/sprint/${input.sprintId}`,
+        {
+          body,
+          api: "agile",
+        }
+      );
+
+      return {
+        success: true,
+        sprint: mapSprintExtended(raw as Parameters<typeof mapSprintExtended>[0]),
+      };
+    } catch (error) {
+      if (error instanceof JiraApiError && error.statusCode === 404) {
+        throw new JiraSprintNotFoundError(input.sprintId);
       }
       throw error;
     }

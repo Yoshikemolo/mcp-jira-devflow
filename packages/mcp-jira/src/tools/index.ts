@@ -36,6 +36,13 @@ import { createIssueTool, executeCreateIssue } from "./create-issue.js";
 import { updateIssueTool, executeUpdateIssue } from "./update-issue.js";
 import { transitionIssueTool, executeTransitionIssue } from "./transition-issue.js";
 
+// Board and Sprint management tools
+import { getBoardsTool, executeGetBoards } from "./get-boards.js";
+import { getBoardSprintsTool, executeGetBoardSprints } from "./get-board-sprints.js";
+import { getSprintTool, executeGetSprint } from "./get-sprint.js";
+import { moveIssuesToSprintTool, executeMoveIssuesToSprint } from "./move-issues-to-sprint.js";
+import { updateSprintTool, executeUpdateSprint } from "./update-sprint.js";
+
 /**
  * Tool definition type.
  */
@@ -72,6 +79,12 @@ const jiraTools: ToolDefinition[] = [
   createIssueTool,
   updateIssueTool,
   transitionIssueTool,
+  // Board and Sprint management
+  getBoardsTool,
+  getBoardSprintsTool,
+  getSprintTool,
+  moveIssuesToSprintTool,
+  updateSprintTool,
 ];
 
 /**
@@ -209,6 +222,22 @@ export function registerTools(server: Server): void {
       case "transition_issue":
         return executeTransitionIssue(client, args);
 
+      // Board and Sprint management
+      case "get_boards":
+        return executeGetBoards(client, args);
+
+      case "get_board_sprints":
+        return executeGetBoardSprints(client, args);
+
+      case "get_sprint":
+        return executeGetSprint(client, args);
+
+      case "move_issues_to_sprint":
+        return executeMoveIssuesToSprint(client, args);
+
+      case "update_sprint":
+        return executeUpdateSprint(client, args);
+
       default:
         return {
           content: [
@@ -235,3 +264,9 @@ export { deepAnalysisTool, executeDeepAnalysis } from "./deep-analysis.js";
 export { createIssueTool, executeCreateIssue } from "./create-issue.js";
 export { updateIssueTool, executeUpdateIssue } from "./update-issue.js";
 export { transitionIssueTool, executeTransitionIssue } from "./transition-issue.js";
+// Board and Sprint management
+export { getBoardsTool, executeGetBoards } from "./get-boards.js";
+export { getBoardSprintsTool, executeGetBoardSprints } from "./get-board-sprints.js";
+export { getSprintTool, executeGetSprint } from "./get-sprint.js";
+export { moveIssuesToSprintTool, executeMoveIssuesToSprint } from "./move-issues-to-sprint.js";
+export { updateSprintTool, executeUpdateSprint } from "./update-sprint.js";

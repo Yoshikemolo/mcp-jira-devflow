@@ -336,3 +336,114 @@ export interface TransitionIssueResult {
   readonly transitionName: string;
   readonly newStatus: string;
 }
+
+// ============================================================================
+// Board and Sprint Management Types
+// ============================================================================
+
+/**
+ * Jira board type.
+ */
+export type JiraBoardType = "scrum" | "kanban" | "simple";
+
+/**
+ * Jira board location (project info).
+ */
+export interface JiraBoardLocation {
+  readonly projectId: number;
+  readonly projectKey: string;
+  readonly projectName: string;
+  readonly displayName: string;
+}
+
+/**
+ * Jira board representation.
+ */
+export interface JiraBoard {
+  readonly id: number;
+  readonly name: string;
+  readonly type: JiraBoardType;
+  readonly self: string;
+  readonly location?: JiraBoardLocation | undefined;
+}
+
+/**
+ * Paginated boards result.
+ */
+export interface JiraBoardsResult {
+  readonly boards: readonly JiraBoard[];
+  readonly startAt: number;
+  readonly maxResults: number;
+  readonly total: number;
+  readonly isLast: boolean;
+}
+
+/**
+ * Extended sprint type with origin board info.
+ */
+export interface JiraSprintExtended extends JiraSprint {
+  readonly originBoardId: number;
+  readonly self: string;
+}
+
+/**
+ * Paginated sprints result.
+ */
+export interface JiraSprintsResult {
+  readonly sprints: readonly JiraSprintExtended[];
+  readonly startAt: number;
+  readonly maxResults: number;
+  readonly total: number;
+  readonly isLast: boolean;
+}
+
+/**
+ * Sprint with its issues.
+ */
+export interface JiraSprintWithIssues {
+  readonly sprint: JiraSprintExtended;
+  readonly issues: readonly JiraIssue[];
+  readonly total: number;
+}
+
+/**
+ * Input for moving issues to a sprint.
+ */
+export interface MoveIssuesToSprintInput {
+  readonly sprintId: number;
+  readonly issueKeys: readonly string[];
+}
+
+/**
+ * Result of moving issues to a sprint.
+ */
+export interface MoveIssuesToSprintResult {
+  readonly success: boolean;
+  readonly sprintId: number;
+  readonly movedIssues: readonly string[];
+}
+
+/**
+ * Sprint state for updates.
+ */
+export type SprintState = "active" | "closed" | "future";
+
+/**
+ * Input for updating a sprint.
+ */
+export interface UpdateSprintInput {
+  readonly sprintId: number;
+  readonly name?: string | undefined;
+  readonly startDate?: string | undefined;
+  readonly endDate?: string | undefined;
+  readonly goal?: string | undefined;
+  readonly state?: SprintState | undefined;
+}
+
+/**
+ * Result of updating a sprint.
+ */
+export interface UpdateSprintResult {
+  readonly success: boolean;
+  readonly sprint: JiraSprintExtended;
+}
