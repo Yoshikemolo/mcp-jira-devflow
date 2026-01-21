@@ -24,6 +24,12 @@ import type {
   JiraIssueLinkType,
   JiraTransition,
   JiraTransitionsResult,
+  JiraBoard,
+  JiraBoardType,
+  JiraBoardLocation,
+  JiraBoardsResult,
+  JiraSprintExtended,
+  JiraSprintsResult,
 } from "./types.js";
 
 /**
@@ -679,5 +685,141 @@ export function textToAdf(text: string): object {
     type: "doc",
     version: 1,
     content: content.length > 0 ? content : [{ type: "paragraph", content: [] }],
+  };
+}
+
+// ============================================================================
+// Board and Sprint Mappers (Agile API)
+// ============================================================================
+
+/**
+ * Raw board location from Agile API.
+ */
+interface RawBoardLocation {
+  projectId: number;
+  projectKey: string;
+  projectName: string;
+  displayName: string;
+}
+
+/**
+ * Raw board from Agile API.
+ */
+interface RawBoard {
+  id: number;
+  name: string;
+  type: string;
+  self: string;
+  location?: RawBoardLocation;
+}
+
+/**
+ * Raw sprint from Agile API (extended with origin board).
+ */
+interface RawSprintExtended {
+  id: number;
+  name: string;
+  state: string;
+  startDate?: string;
+  endDate?: string;
+  completeDate?: string;
+  goal?: string;
+  originBoardId: number;
+  self: string;
+}
+
+/**
+ * Maps a raw board location to domain board location.
+ */
+function mapBoardLocation(raw: RawBoardLocation): JiraBoardLocation {
+  return {
+    projectId: raw.projectId,
+    projectKey: raw.projectKey,
+    projectName: raw.projectName,
+    displayName: raw.displayName,
+  };
+}
+
+/**
+ * Maps a raw board type to domain board type.
+ */
+function mapBoardType(type: string): JiraBoardType {
+  const validTypes = ["scrum", "kanban", "simple"] as const;
+  const lowerType = type.toLowerCase();
+  return validTypes.includes(lowerType as typeof validTypes[number])
+    ? (lowerType as JiraBoardType)
+    : "simple";
+}
+
+/**
+ * Maps a raw board to domain board.
+ */
+export function mapBoard(raw: RawBoard): JiraBoard {
+  return {
+    id: raw.id,
+    name: raw.name,
+    type: mapBoardType(raw.type),
+    self: raw.self,
+    location: raw.location ? mapBoardLocation(raw.location) : undefined,
+  };
+}
+
+/**
+ * Maps a raw boards response to domain boards result.
+ */
+export function mapBoardsResult(raw: {
+  values: RawBoard[];
+  startAt: number;
+  maxResults: number;
+  total: number;
+  isLast: boolean;
+}): JiraBoardsResult {
+  return {
+    boards: raw.values.map(mapBoard),
+    startAt: raw.startAt,
+    maxResults: raw.maxResults,
+    total: raw.total,
+    isLast: raw.isLast,
+  };
+}
+
+/**
+ * Maps a raw extended sprint to domain extended sprint.
+ */
+export function mapSprintExtended(raw: RawSprintExtended): JiraSprintExtended {
+  const validStates = ["active", "closed", "future"] as const;
+  const state = validStates.includes(raw.state as typeof validStates[number])
+    ? (raw.state as JiraSprintExtended["state"])
+    : "future";
+
+  return {
+    id: raw.id,
+    name: raw.name,
+    state,
+    startDate: raw.startDate,
+    endDate: raw.endDate,
+    completeDate: raw.completeDate,
+    goal: raw.goal,
+    originBoardId: raw.originBoardId,
+    self: raw.self,
+  };
+}
+
+/**
+ * Maps a raw sprints response to domain sprints result.
+ */
+export function mapSprintsResult(raw: {
+  values: RawSprintExtended[];
+  startAt: number;
+  maxResults: number;
+  total: number;
+  isLast: boolean;
+}): JiraSprintsResult {
+  return {
+    sprints: raw.values.map(mapSprintExtended),
+    startAt: raw.startAt,
+    maxResults: raw.maxResults,
+    total: raw.total,
+    isLast: raw.isLast,
   };
 }

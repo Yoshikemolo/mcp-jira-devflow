@@ -31,6 +31,7 @@ Whether you are managing a single project or orchestrating multiple enterprise a
 | **SCRUM Guidance** | Automated best-practice analysis with health scores and actionable recommendations |
 | **Sprint Velocity** | Historical velocity metrics with trend analysis across multiple sprints |
 | **Deep Analysis** | Hierarchical issue analysis with anomaly detection (points mismatch, stale items, unassigned work) |
+| **Board & Sprint Management** | List boards, manage sprints, move issues between sprints with state validation |
 | **Token Optimization** | Intelligent output compression that adapts to result size |
 
 ### Available Tools
@@ -46,6 +47,11 @@ Whether you are managing a single project or orchestrating multiple enterprise a
 | `create_issue` | Create new issues with full field support (subtasks, story points, labels) |
 | `update_issue` | Update existing issues (summary, description, assignee, priority, etc.) |
 | `transition_issue` | Transition issues between workflow states |
+| `get_boards` | List Jira boards with project/type/name filters |
+| `get_board_sprints` | List sprints for a board (future/active/closed) |
+| `get_sprint` | Get sprint details with issues and metrics |
+| `move_issues_to_sprint` | Move issues to a sprint (with dry run support) |
+| `update_sprint` | Update sprint name, dates, goal, or state |
 | `jira_dev_reload` | Development only: triggers graceful server restart to apply code changes |
 
 ---
@@ -60,7 +66,7 @@ MCP Jira DevFlow is evolving toward a unified platform for AI-assisted enterpris
 - [x] Sprint velocity and performance metrics
 - [x] Deep hierarchical analysis with anomaly detection
 - [x] Write operations (create, update, transition issues)
-- [ ] Board and sprint management
+- [x] Board and sprint management
 - [ ] Custom field mapping and configuration
 
 ### Phase 2: Git Integration (Upcoming)
@@ -220,6 +226,7 @@ pnpm build --watch
 | F004 | Sprint Velocity | Stable | Team performance metrics |
 | F005 | Deep Analysis | Stable | Hierarchical analysis with anomaly detection |
 | F006 | Jira Write Operations | Stable | Issue creation and updates |
+| F009 | Board & Sprint Management | Stable | Board listing, sprint operations, issue movement |
 | F007 | Git Integration | Planned | Repository and branch management |
 | F008 | PR Automation | Planned | Automated pull request workflows |
 
