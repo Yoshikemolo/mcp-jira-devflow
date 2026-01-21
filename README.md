@@ -173,62 +173,38 @@ pnpm build
 pnpm test
 ```
 
+### Configuration
+
+Set the required environment variables (via `.env` file, shell export, or inline):
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `JIRA_BASE_URL` | Your Jira instance URL (e.g., `https://company.atlassian.net`) | Yes |
+| `JIRA_USER_EMAIL` | Your Jira account email | Yes |
+| `JIRA_API_TOKEN` | Your Jira API token ([generate here](https://id.atlassian.com/manage-profile/security/api-tokens)) | Yes |
+
+```bash
+# Option: Create a .env file
+cp .env.example .env
+# Then edit .env with your credentials
+```
+
 ### Run Locally
 
-You can run the MCP server directly from the command line for testing or integration with other tools.
-
-#### Option 1: Using environment variables
+Once configured, run the MCP server directly from the command line:
 
 ```bash
-# Set your Jira credentials
-export JIRA_BASE_URL=https://your-domain.atlassian.net
-export JIRA_USER_EMAIL=your-email@example.com
-export JIRA_API_TOKEN=your-api-token
+# Using environment variables (export or .env)
+pnpm -C packages/mcp-jira start
 
-# Run the server
-node packages/mcp-jira/dist/server.js
-```
-
-#### Option 2: Using a .env file
-
-```bash
-# Create your .env file in the project root
-cp .env.example .env
-
-# Edit .env with your credentials
-# JIRA_BASE_URL=https://your-domain.atlassian.net
-# JIRA_USER_EMAIL=your-email@example.com
-# JIRA_API_TOKEN=your-api-token
-
-# Run with dotenv (requires dotenv-cli: npm install -g dotenv-cli)
-dotenv -- node packages/mcp-jira/dist/server.js
-```
-
-#### Option 3: Inline execution (quick testing)
-
-```bash
+# Or inline for quick testing
 JIRA_BASE_URL=https://your-domain.atlassian.net \
 JIRA_USER_EMAIL=your-email@example.com \
 JIRA_API_TOKEN=your-api-token \
-node packages/mcp-jira/dist/server.js
+pnpm -C packages/mcp-jira start
 ```
 
-The server communicates via stdio using the MCP protocol. Once running, it will output startup information to stderr and wait for MCP commands on stdin.
-
-### Configuration
-
-```bash
-# Create environment configuration
-cp .env.example .env
-```
-
-Required environment variables:
-
-```
-JIRA_BASE_URL=https://your-domain.atlassian.net
-JIRA_USER_EMAIL=your-email@example.com
-JIRA_API_TOKEN=your-api-token
-```
+The server communicates via stdio using the MCP protocol. It outputs startup information to stderr and waits for MCP commands on stdin.
 
 ### Custom Field Configuration
 

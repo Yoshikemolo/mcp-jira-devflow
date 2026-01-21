@@ -15,6 +15,7 @@
     "build": "tsc",
     "clean": "rimraf dist",
     "lint": "eslint src",
+    "start": "node dist/server.js",
     "test": "vitest run",
     "typecheck": "tsc --noEmit"
   },
