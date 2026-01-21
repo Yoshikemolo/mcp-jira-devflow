@@ -293,6 +293,127 @@ Connect PR context with Jira requirements. Ensure acceptance criteria alignment 
 
 ---
 
+## Prompt Examples
+
+Stop context-switching between Jira and your IDE. These prompts demonstrate how MCP Jira DevFlow transforms natural language into actionable Jira intelligence.
+
+### Backlog Analysis
+
+**Problem**: You need to understand the state of your backlog before sprint planning, but navigating Jira dashboards takes too long.
+
+```
+Analyze the backlog for project WEBAPP. Show me all unestimated stories,
+any epics with inconsistent point totals, and items that have been
+in progress for more than 5 days.
+```
+
+```
+Give me a health check of epic WEBAPP-150. Are there any orphaned subtasks,
+missing estimates, or blocked items I should know about?
+```
+
+### Sprint Management
+
+**Problem**: Sprint ceremonies consume valuable time that could be spent coding. You need instant visibility into sprint health.
+
+```
+What is the current status of our active sprint? Show me completion percentage,
+remaining story points, and highlight any items at risk.
+```
+
+```
+Compare the velocity of the last 5 sprints for project MOBILE.
+Are we improving or declining? What is our average capacity?
+```
+
+```
+Move tickets WEBAPP-201, WEBAPP-202, and WEBAPP-203 to the next sprint.
+They were not completed and need to carry over.
+```
+
+### Issue Creation and Updates
+
+**Problem**: Creating well-structured Jira tickets interrupts your development flow. You need to capture requirements without leaving your context.
+
+```
+Create a bug ticket in project API: Users are receiving 500 errors when
+uploading files larger than 10MB. Priority is high. Assign it to me.
+```
+
+```
+Break down story WEBAPP-180 into subtasks for: database schema changes,
+API endpoint implementation, frontend integration, and unit tests.
+Estimate each subtask.
+```
+
+```
+Update WEBAPP-195: change the status to In Review, add label "needs-qa",
+and set story points to 5.
+```
+
+### Team Coordination
+
+**Problem**: Standup meetings lack focus because team members spend time searching for their assigned work instead of discussing blockers.
+
+```
+Show me all in-progress items assigned to the frontend team.
+Include how long each has been in progress and any blockers.
+```
+
+```
+What tickets are assigned to maria@company.com in the current sprint?
+Are any of them blocked or overdue?
+```
+
+### SCRUM Compliance
+
+**Problem**: Maintaining SCRUM best practices requires constant vigilance. Poorly defined tickets slip through and cause downstream issues.
+
+```
+Review ticket WEBAPP-210 against SCRUM best practices.
+Does it have clear acceptance criteria, proper estimation, and correct categorization?
+```
+
+```
+Find all stories in the current sprint that are missing acceptance criteria
+or have no story points assigned.
+```
+
+### Custom Field Discovery
+
+**Problem**: Your Jira instance uses non-standard field IDs, and story points are not being captured correctly.
+
+```
+Discover all custom fields in my Jira instance that might be used for story points.
+Show me numeric fields with names containing "point" or "estimate".
+```
+
+```
+Configure the story points field to use customfield_10045
+and the sprint field to use customfield_10022.
+```
+
+### Advanced JQL Queries
+
+**Problem**: Complex queries require JQL expertise. You need powerful searches without memorizing syntax.
+
+```
+Find all high-priority bugs created in the last 2 weeks that are still open
+and not assigned to anyone.
+```
+
+```
+Show me all stories completed in the last sprint that had their estimates
+changed after sprint start.
+```
+
+```
+Search for tickets in project PLATFORM that mention "performance"
+in the description and have more than 3 comments.
+```
+
+---
+
 ## Documentation
 
 - [Jira Package Documentation](./packages/mcp-jira/README.md) - Detailed tool reference
