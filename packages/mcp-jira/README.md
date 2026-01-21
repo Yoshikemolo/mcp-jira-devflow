@@ -269,29 +269,30 @@ The server verifies API compatibility on connection.
 ## Project Structure
 
 ```
-src/
-├── server.ts             # MCP server entry point (graceful startup)
-├── server-state.ts       # Runtime state management
-├── tools/
-│   ├── index.ts          # State-aware tool registration
-│   ├── setup-guide.ts    # Setup guide tool
-│   ├── configure.ts      # Runtime configuration tool
-│   ├── get-issue.ts      # Get issue tool
-│   ├── search-jql.ts     # JQL search tool
-│   ├── get-comments.ts   # Get comments tool
-│   └── scrum-guidance.ts # SCRUM guidance tool
-├── guidance/             # SCRUM guidance module
-│   ├── index.ts          # Module exports
-│   ├── types.ts          # Guidance types
-│   ├── analyzer.ts       # Issue analysis logic
-│   ├── rules.ts          # SCRUM rules & field checks
-│   └── prompts.ts        # Follow-up prompt generator
-├── config/
-│   └── schema.ts         # Configuration validation
-└── domain/
-    ├── types.ts          # Domain types
-    ├── jira-client.ts    # Jira API client
-    └── mappers.ts        # Response mappers
+├── test-guidance.mjs     # Interactive CLI test script
+└── src/
+    ├── server.ts             # MCP server entry point (graceful startup)
+    ├── server-state.ts       # Runtime state management
+    ├── tools/
+    │   ├── index.ts          # State-aware tool registration
+    │   ├── setup-guide.ts    # Setup guide tool
+    │   ├── configure.ts      # Runtime configuration tool
+    │   ├── get-issue.ts      # Get issue tool
+    │   ├── search-jql.ts     # JQL search tool
+    │   ├── get-comments.ts   # Get comments tool
+    │   └── scrum-guidance.ts # SCRUM guidance tool
+    ├── guidance/             # SCRUM guidance module
+    │   ├── index.ts          # Module exports
+    │   ├── types.ts          # Guidance types
+    │   ├── analyzer.ts       # Issue analysis logic
+    │   ├── rules.ts          # SCRUM rules & field checks
+    │   └── prompts.ts        # Follow-up prompt generator
+    ├── config/
+    │   └── schema.ts         # Configuration validation
+    └── domain/
+        ├── types.ts          # Domain types
+        ├── jira-client.ts    # Jira API client
+        └── mappers.ts        # Response mappers
 ```
 
 ## Development
@@ -311,6 +312,80 @@ pnpm build
 
 # Build Docker image
 docker build -t mcp-jira .
+```
+
+## Testing SCRUM Guidance
+
+An interactive CLI tool is provided to test the SCRUM guidance feature without needing the full MCP server.
+
+### Running the Test Script
+
+```bash
+# Build first (required)
+pnpm build
+
+# Run the interactive test
+node test-guidance.mjs
+```
+
+### Features
+
+- **Interactive credential input**: Prompts for Jira URL, email, and API token if not configured
+- **Credential storage**: Optionally saves credentials locally for future use (with security warning)
+- **Issue listing**: Shows your assigned "To Do" issues before analysis
+- **Colored output**: Visual feedback with colors for severity levels and scores
+- **Detailed analysis**: Displays recommendations, workflow actions, and follow-up prompts
+
+### Example Session
+
+```
+╔═══════════════════════════════════════════════╗
+║  ░██████╗░█████╗░██████╗░██╗░░░██╗███╗░░░███╗ ║
+║  ...                                          ║
+║     G U I D A N C E   T E S T   T O O L       ║
+╚═══════════════════════════════════════════════╝
+
+📁 Found saved credentials:
+  Jira URL:  https://company.atlassian.net
+  Email:     jor***rge@company.com
+  API Token: ****
+
+Use these saved credentials? (y/n): y
+
+Show your assigned issues? (y/n): y
+
+Found 3 issue(s) assigned to you:
+
+  PROJ-123 [STORY] Implement user authentication
+    Status: To Do  Type: Story
+
+Issue key to analyze (e.g., PROJ-123): PROJ-123
+
+╔══════════════════════════════════════════════╗
+║  RESULTS                                     ║
+╚══════════════════════════════════════════════╝
+
+  Issue:        PROJ-123 (Story)
+  Status:       new
+  Health:       65/100
+  Completeness: 70/100
+
+── Recommendations ─────────────────────────────
+
+  [CRITICAL] Missing Acceptance Criteria
+  Stories should have clear acceptance criteria...
+  → Add acceptance criteria using: Given... When... Then...
+```
+
+### Environment Variables
+
+You can skip the credential prompts by setting environment variables:
+
+```bash
+export JIRA_BASE_URL="https://your-company.atlassian.net"
+export JIRA_USER_EMAIL="your-email@company.com"
+export JIRA_API_TOKEN="your-api-token"
+node test-guidance.mjs
 ```
 
 ## See Also
