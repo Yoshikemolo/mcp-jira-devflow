@@ -136,6 +136,48 @@ pnpm build
 pnpm test
 ```
 
+### Run Locally
+
+You can run the MCP server directly from the command line for testing or integration with other tools.
+
+#### Option 1: Using environment variables
+
+```bash
+# Set your Jira credentials
+export JIRA_BASE_URL=https://your-domain.atlassian.net
+export JIRA_USER_EMAIL=your-email@example.com
+export JIRA_API_TOKEN=your-api-token
+
+# Run the server
+node packages/mcp-jira/dist/server.js
+```
+
+#### Option 2: Using a .env file
+
+```bash
+# Create your .env file in the project root
+cp .env.example .env
+
+# Edit .env with your credentials
+# JIRA_BASE_URL=https://your-domain.atlassian.net
+# JIRA_USER_EMAIL=your-email@example.com
+# JIRA_API_TOKEN=your-api-token
+
+# Run with dotenv (requires dotenv-cli: npm install -g dotenv-cli)
+dotenv -- node packages/mcp-jira/dist/server.js
+```
+
+#### Option 3: Inline execution (quick testing)
+
+```bash
+JIRA_BASE_URL=https://your-domain.atlassian.net \
+JIRA_USER_EMAIL=your-email@example.com \
+JIRA_API_TOKEN=your-api-token \
+node packages/mcp-jira/dist/server.js
+```
+
+The server communicates via stdio using the MCP protocol. Once running, it will output startup information to stderr and wait for MCP commands on stdin.
+
 ### Configuration
 
 ```bash
