@@ -24,6 +24,7 @@ import { searchJqlTool, executeSearchJql } from "./search-jql.js";
 import { getCommentsTool, executeGetComments } from "./get-comments.js";
 import { scrumGuidanceTool, executeScrumGuidance } from "./scrum-guidance.js";
 import { sprintVelocityTool, executeSprintVelocity } from "./get-sprint-velocity.js";
+import { deepAnalysisTool, executeDeepAnalysis } from "./deep-analysis.js";
 
 /**
  * Tool definition type.
@@ -52,6 +53,7 @@ const jiraTools: ToolDefinition[] = [
   getCommentsTool,
   scrumGuidanceTool,
   sprintVelocityTool,
+  deepAnalysisTool,
 ];
 
 /**
@@ -164,6 +166,9 @@ export function registerTools(server: Server): void {
       case "get_sprint_velocity":
         return executeSprintVelocity(client, args);
 
+      case "jira_deep_analysis":
+        return executeDeepAnalysis(client, args);
+
       default:
         return {
           content: [
@@ -186,3 +191,4 @@ export { setupGuideTool, executeSetupGuide } from "./setup-guide.js";
 export { configureTool, executeConfigure } from "./configure.js";
 export { scrumGuidanceTool, executeScrumGuidance } from "./scrum-guidance.js";
 export { sprintVelocityTool, executeSprintVelocity } from "./get-sprint-velocity.js";
+export { deepAnalysisTool, executeDeepAnalysis } from "./deep-analysis.js";

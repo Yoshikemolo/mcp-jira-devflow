@@ -1,19 +1,40 @@
 # @mcp-jira-devflow/mcp-jira
 
-MCP server for Jira integration. Provides read-only access to Jira issues, JQL search, and comments.
+**Intelligent Jira Integration for AI-Powered Development Workflows**
+
+The MCP Jira server provides comprehensive read access to your Jira Cloud instance through the Model Context Protocol. Designed for enterprise SCRUM teams, it delivers intelligent analysis capabilities that transform raw Jira data into actionable insights for AI agents.
+
+---
+
+## Key Features
+
+### Comprehensive Jira Access
+Full read access to issues, comments, and search through JQL. Supports pagination, custom fields, and all standard Jira Cloud issue types.
+
+### SCRUM Best Practice Analysis
+Automated evaluation of issues against SCRUM standards. Receive severity-ranked recommendations, health scores, and suggested workflow actions tailored to each issue type.
+
+### Sprint Performance Metrics
+Historical velocity tracking across multiple sprints. Analyze completion rates, committed vs delivered points, and identify trends for better sprint planning.
+
+### Deep Hierarchical Analysis
+Navigate Epic-to-subtask hierarchies with aggregated metrics. Automatic detection of estimation mismatches, stale work items, unassigned sprint items, and other anomalies.
+
+### Token-Optimized Output
+Intelligent response compression that automatically adjusts detail level based on result size. Handle large backlogs without overwhelming AI context windows.
+
+---
 
 ## Quick Start
 
-### Option 1: Direct (Node.js)
+### Option 1: Node.js
 
 ```bash
-# Install dependencies
+# Install and build
 pnpm install
-
-# Build
 pnpm build
 
-# Run with environment variables
+# Run with credentials
 JIRA_BASE_URL="https://your-company.atlassian.net" \
 JIRA_USER_EMAIL="your-email@company.com" \
 JIRA_API_TOKEN="your-api-token" \
@@ -23,10 +44,8 @@ node dist/server.js
 ### Option 2: Docker
 
 ```bash
-# Build image
+# Build and run
 docker build -t mcp-jira .
-
-# Run with environment variables
 docker run -i \
   -e JIRA_BASE_URL="https://your-company.atlassian.net" \
   -e JIRA_USER_EMAIL="your-email@company.com" \
@@ -34,36 +53,7 @@ docker run -i \
   mcp-jira
 ```
 
-Or with docker-compose (create a `.env` file first):
-
-```bash
-docker-compose up
-```
-
-## Configuration
-
-### Getting a Jira API Token
-
-1. Go to: https://id.atlassian.com/manage-profile/security/api-tokens
-2. Click "Create API token"
-3. Give it a label (e.g., "MCP Jira")
-4. Copy the generated token (you won't see it again!)
-
-### Environment Variables
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `JIRA_BASE_URL` | Yes | Jira instance URL (e.g., `https://company.atlassian.net`) |
-| `JIRA_USER_EMAIL` | Yes | Your Jira account email |
-| `JIRA_API_TOKEN` | Yes | Your Jira API token |
-| `JIRA_TIMEOUT` | No | Request timeout in ms (default: 30000) |
-| `JIRA_MAX_RETRIES` | No | Max retry attempts (default: 3) |
-
-### Claude Code Configuration
-
-Add to your MCP config file (`~/.claude/claude_desktop_config.json` on macOS/Linux):
-
-**Option A: Environment Variables (Recommended)**
+### Claude Desktop Configuration
 
 ```json
 {
@@ -81,109 +71,75 @@ Add to your MCP config file (`~/.claude/claude_desktop_config.json` on macOS/Lin
 }
 ```
 
-**Option B: Docker**
+---
 
-```json
-{
-  "mcpServers": {
-    "jira": {
-      "command": "docker",
-      "args": [
-        "run", "-i", "--rm",
-        "-e", "JIRA_BASE_URL=https://your-company.atlassian.net",
-        "-e", "JIRA_USER_EMAIL=your-email@company.com",
-        "-e", "JIRA_API_TOKEN=your-api-token",
-        "mcp-jira"
-      ]
-    }
-  }
-}
-```
+## Environment Variables
 
-### Unconfigured Mode
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `JIRA_BASE_URL` | Yes | Your Jira Cloud URL (e.g., `https://company.atlassian.net`) |
+| `JIRA_USER_EMAIL` | Yes | Jira account email |
+| `JIRA_API_TOKEN` | Yes | API token from Atlassian account settings |
+| `JIRA_TIMEOUT` | No | Request timeout in milliseconds (default: 30000) |
+| `JIRA_MAX_RETRIES` | No | Maximum retry attempts (default: 3) |
 
-The server starts gracefully even without credentials. When unconfigured:
+**Getting an API Token**: Visit https://id.atlassian.com/manage-profile/security/api-tokens
 
-- `jira_setup_guide` and `jira_configure` tools are available
-- Jira tools return helpful error messages
-- Use `jira_configure` to set credentials at runtime
+---
 
 ## Available Tools
 
-### Always Available
+### Setup Tools (Always Available)
 
 #### `jira_setup_guide`
-
-Shows configuration status and setup instructions.
-
-```json
-{}
-```
-
-Returns: Configuration status, setup steps, and troubleshooting tips.
+Displays configuration status and setup instructions. Useful for troubleshooting connection issues.
 
 #### `jira_configure`
+Runtime credential configuration. Enables setup without environment variables (credentials visible in chat history).
 
-Configure Jira credentials at runtime.
+---
 
-```json
-{
-  "baseUrl": "https://company.atlassian.net",
-  "email": "user@company.com",
-  "apiToken": "your-api-token",
-  "confirmSecurityWarning": true
-}
-```
-
-**Security Warning**: Credentials will be visible in chat history. For better security, use environment variables.
-
-### Requires Configuration
+### Core Operations
 
 #### `get_issue`
-
-Retrieves a Jira issue by its key.
+Retrieves complete issue details including metadata, status, assignee, labels, components, and custom fields.
 
 ```json
-{
-  "issueKey": "PROJ-123"
-}
+{ "issueKey": "PROJ-123" }
 ```
-
-Returns: Issue details including summary, description, status, assignee, and metadata.
 
 #### `search_jql`
-
-Searches for issues using JQL (Jira Query Language).
+Executes JQL queries with full pagination support. Token-based pagination handles large result sets efficiently.
 
 ```json
 {
-  "jql": "project = PROJ AND status = Open",
+  "jql": "project = PROJ AND status = 'In Progress'",
   "maxResults": 50,
-  "nextPageToken": "optional-token-for-next-page"
+  "outputMode": "auto"
 }
 ```
 
-Returns: List of matching issues with pagination info. Maximum 50 results per request.
-
-**Note**: Uses token-based pagination. Use `nextPageToken` from the response for subsequent pages.
+**Output Modes**:
+- `auto`: Compact format for large results, full details for small results
+- `compact`: Minimal fields only (key, summary, status, type)
+- `full`: Complete issue details
 
 #### `get_issue_comments`
-
-Retrieves comments from a Jira issue.
+Retrieves discussion threads with author information and timestamps.
 
 ```json
 {
   "issueKey": "PROJ-123",
-  "startAt": 0,
   "maxResults": 50
 }
 ```
 
-Returns: List of comments with author, body, and timestamps.
+---
+
+### Analysis Tools
 
 #### `jira_scrum_guidance`
-
-Analyzes a Jira issue and provides SCRUM best practice recommendations, workflow action suggestions, and contextual follow-up prompts.
+Evaluates issues against SCRUM best practices with type-specific checks.
 
 ```json
 {
@@ -192,44 +148,32 @@ Analyzes a Jira issue and provides SCRUM best practice recommendations, workflow
 }
 ```
 
-**Parameters:**
-- `issueKey` (required): The Jira issue key
-- `level` (optional): Detail level - `minimal` (critical issues only), `standard` (default), or `verbose` (all recommendations)
+**Analysis Levels**:
+- `minimal`: Critical issues only
+- `standard`: Balanced recommendations
+- `verbose`: Complete analysis
 
-**Returns:** Analysis including:
-- **Summary**: Issue metadata, health score (0-100), and completeness score (0-100)
-- **Recommendations**: SCRUM best practice issues by severity (critical, high, medium, low, info)
-- **Workflow Actions**: Suggested next steps based on issue status
-- **Follow-up Prompts**: Contextual prompts for further assistance
+**Issue Type Checks**:
 
-**Issue Type Checks:**
-| Type | Key Checks |
-|------|------------|
-| Story | Acceptance criteria, user story format, description, assignee |
-| Bug | Reproduction steps, environment info, expected/actual behavior, priority |
-| Task | Description, assignee when in-progress, staleness |
-| Epic | Business value statement, description |
-| Subtask | Description, assignee when in-progress |
+| Type | Validations |
+|------|-------------|
+| Story | Acceptance criteria, user story format, description completeness, assignee |
+| Bug | Reproduction steps, environment details, expected/actual behavior, priority |
+| Task | Description, in-progress assignee, staleness detection |
+| Epic | Business value statement, description, child issue status |
+| Subtask | Parent alignment, description, assignee |
 
-**Example Output:**
-```
-## Summary
-- Issue: PROJ-123
-- Type: Story
-- Health Score: 65/100
-- Completeness: 70/100
+**Output Includes**:
+- Health score (0-100)
+- Completeness score (0-100)
+- Severity-ranked recommendations
+- Suggested workflow actions
+- Context-aware follow-up prompts
 
-## Recommendations
-### [CRITICAL] Missing Acceptance Criteria
-Stories should have clear acceptance criteria...
-
-## Follow-up Prompts
-- "Help me write acceptance criteria for PROJ-123"
-```
+---
 
 #### `get_sprint_velocity`
-
-Calculates sprint velocity metrics for a project. Returns aggregated metrics optimized for token usage.
+Calculates team velocity metrics across closed sprints.
 
 ```json
 {
@@ -239,124 +183,159 @@ Calculates sprint velocity metrics for a project. Returns aggregated metrics opt
 }
 ```
 
-**Parameters:**
-- `projectKey` (required): The Jira project key (e.g., "PROJ")
-- `sprintCount` (optional): Number of recent closed sprints to analyze (1-10, default: 5)
-- `outputMode` (optional): Output format - `summary` (averages only), `detailed` (default, per-sprint metrics), or `full` (includes issue list)
+**Output Modes**:
 
-**Returns:** Sprint velocity analysis including:
-- **Average Velocity**: Average story points completed per sprint
-- **Completion Rates**: Points completed vs committed per sprint
-- **Issue Counts**: Number of completed vs total issues
-- **Sprint Details**: Per-sprint breakdown (in detailed/full modes)
-- **Issue List**: Compact issue list (in full mode only)
+| Mode | Content | Token Estimate |
+|------|---------|----------------|
+| `summary` | Averages and totals only | ~200 |
+| `detailed` | Per-sprint breakdown | ~500-1000 |
+| `full` | Includes issue list | ~2000-5000 |
 
-**Output Modes:**
+**Metrics Provided**:
+- Average velocity (story points per sprint)
+- Completion rate (delivered vs committed)
+- Issue throughput
+- Sprint-by-sprint breakdown
+- Trend indicators
 
-| Mode | Content | Tokens |
-|------|---------|--------|
-| `summary` | Only averages and totals | ~200 |
-| `detailed` | Per-sprint metrics without issues | ~500-1000 |
-| `full` | Includes compact issue list | ~2000-5000 |
+---
 
-**Example Output (detailed):**
+#### `jira_deep_analysis`
+Hierarchical analysis with automatic anomaly detection. Essential for Epic health checks and sprint readiness assessment.
+
 ```json
 {
-  "projectKey": "PROJ",
-  "sprintCount": 3,
-  "averageVelocity": 21.3,
-  "averageCompletedIssues": 8.3,
-  "totalCompletedPoints": 64,
-  "totalCompletedIssues": 25,
+  "issueKey": "EPIC-123",
+  "depth": "standard",
   "outputMode": "detailed",
-  "sprints": [
-    {
-      "name": "Sprint 10",
-      "completedPoints": 24,
-      "completedIssues": 9,
-      "committedPoints": 28,
-      "committedIssues": 10,
-      "completionRate": "86%"
-    },
-    ...
-  ]
+  "maxChildren": 50,
+  "includeLinks": true
 }
 ```
 
-**Notes:**
-- Uses story points from common custom field locations (`customfield_10016`, etc.)
-- If story points are not found, velocity is calculated by issue count
-- Only analyzes closed sprints
-- Sprint data comes from `customfield_10020` (or similar sprint custom fields)
+**Analysis Depth**:
+- `shallow`: Root issue only
+- `standard`: Immediate children and links
+- `deep`: Full hierarchy traversal
 
-## Security
+**Anomaly Detection**:
 
-### Best Practices
+| Anomaly | Description | Severity |
+|---------|-------------|----------|
+| `POINTS_MISMATCH` | Parent estimate differs from children sum | Warning |
+| `UNESTIMATED_CHILDREN` | Children missing story points | Warning/Info |
+| `STALE_IN_PROGRESS` | In Progress >5 days without update | Warning |
+| `NO_ASSIGNEE_IN_SPRINT` | Sprint items without assignees | Info |
 
-1. **Use environment variables** - More secure than runtime configuration
-2. **Never commit credentials** - Add `.env` to `.gitignore`
-3. **Use API tokens, not passwords** - Tokens can be revoked independently
-4. **Limit token scope** - Create tokens specifically for this integration
-5. **Rotate tokens periodically** - Revoke and regenerate regularly
+**Automatic Token Management**:
 
-### Docker Security
+| Result Size | Output Level | Content |
+|-------------|--------------|---------|
+| <20 issues | FULL | Complete details |
+| 20-50 issues | DETAILED | Root full, children compact |
+| 50-100 issues | COMPACT | Status tables only |
+| >100 issues | SUMMARY | Aggregated metrics |
 
-The Docker image includes security hardening:
+---
 
-- Non-root user (`mcpuser`)
-- Read-only filesystem (when using docker-compose)
-- No new privileges
-- Resource limits
+## Example Workflows
 
-### Runtime Configuration Warning
+### Sprint Planning Review
 
-When using `jira_configure`, credentials will be visible in the chat history. This is convenient for testing but not recommended for production. Always use environment variables for sensitive deployments.
+```
+1. Use jira_deep_analysis on each Epic in the sprint
+2. Check for POINTS_MISMATCH anomalies (estimation alignment)
+3. Identify UNESTIMATED_CHILDREN for refinement
+4. Use jira_scrum_guidance on flagged stories
+```
+
+### Daily Standup Preparation
+
+```
+1. Search for in-progress items: search_jql with status = 'In Progress'
+2. Run jira_deep_analysis to detect STALE_IN_PROGRESS
+3. Identify blockers through linked issues
+```
+
+### Retrospective Data
+
+```
+1. Use get_sprint_velocity for the last 5 sprints
+2. Compare completion rates and identify patterns
+3. Drill into specific sprints with jira_deep_analysis
+```
+
+---
 
 ## API Compatibility
 
-- **Jira Cloud** REST API v3 (2024+)
-- **Deployment type**: Cloud only (Server/Data Center not supported)
+- **Platform**: Jira Cloud only
+- **API Version**: REST API v3 (2024+)
+- **Authentication**: API token (Basic Auth)
 
-The server verifies API compatibility on connection.
+Server/Data Center deployments are not supported due to API differences.
+
+---
+
+## Security Best Practices
+
+1. **Environment Variables**: Preferred over runtime configuration
+2. **Token Scope**: Create dedicated tokens for this integration
+3. **Token Rotation**: Regenerate tokens periodically
+4. **Read-Only Access**: Server performs no write operations
+
+### Docker Security
+
+- Non-root user execution
+- Read-only filesystem option
+- No privilege escalation
+- Resource limits supported
+
+---
 
 ## Troubleshooting
 
 | Error | Cause | Solution |
 |-------|-------|----------|
-| 401 Unauthorized | Invalid credentials | Check email and API token |
-| 403 Forbidden | No permission | Verify account has access to the resource |
-| 404 Not Found | Invalid URL | Check base URL includes `https://` |
-| Connection refused | Network issue | Check firewall and network settings |
+| 401 Unauthorized | Invalid credentials | Verify email and API token |
+| 403 Forbidden | Permission denied | Check account has project access |
+| 404 Not Found | Invalid URL or issue | Verify base URL includes `https://` |
+| Rate Limited | Too many requests | Reduce request frequency |
+
+---
 
 ## Project Structure
 
 ```
-├── test-guidance.mjs     # Interactive CLI test script
-└── src/
-    ├── server.ts             # MCP server entry point (graceful startup)
-    ├── server-state.ts       # Runtime state management
-    ├── tools/
-    │   ├── index.ts              # State-aware tool registration
-    │   ├── setup-guide.ts        # Setup guide tool
-    │   ├── configure.ts          # Runtime configuration tool
-    │   ├── get-issue.ts          # Get issue tool
-    │   ├── search-jql.ts         # JQL search tool
-    │   ├── get-comments.ts       # Get comments tool
-    │   ├── scrum-guidance.ts     # SCRUM guidance tool
-    │   └── get-sprint-velocity.ts # Sprint velocity metrics tool
-    ├── guidance/             # SCRUM guidance module
-    │   ├── index.ts          # Module exports
-    │   ├── types.ts          # Guidance types
-    │   ├── analyzer.ts       # Issue analysis logic
-    │   ├── rules.ts          # SCRUM rules & field checks
-    │   └── prompts.ts        # Follow-up prompt generator
-    ├── config/
-    │   └── schema.ts         # Configuration validation
-    └── domain/
-        ├── types.ts          # Domain types (includes JiraSprint, SprintVelocity*)
-        ├── jira-client.ts    # Jira API client
-        └── mappers.ts        # Response mappers (includes sprint/storyPoints extraction)
+src/
+├── server.ts              # MCP server entry point
+├── server-state.ts        # Runtime state management
+├── tools/
+│   ├── index.ts           # Tool registration
+│   ├── get-issue.ts       # Issue retrieval
+│   ├── search-jql.ts      # JQL search
+│   ├── get-comments.ts    # Comment retrieval
+│   ├── scrum-guidance.ts  # SCRUM analysis
+│   ├── get-sprint-velocity.ts  # Velocity metrics
+│   └── deep-analysis.ts   # Hierarchical analysis
+├── analysis/              # Deep analysis module
+│   ├── context-fetcher.ts # Related issue fetching
+│   ├── hierarchy-builder.ts # Tree construction
+│   ├── metrics-calculator.ts # Metrics and anomalies
+│   └── summarizer.ts      # Token-aware formatting
+├── guidance/              # SCRUM guidance module
+│   ├── analyzer.ts        # Issue analysis
+│   ├── rules.ts           # Best-practice rules
+│   └── prompts.ts         # Follow-up generation
+├── domain/
+│   ├── types.ts           # Domain models
+│   ├── jira-client.ts     # API client
+│   └── mappers.ts         # Response transformation
+└── config/
+    └── schema.ts          # Configuration validation
 ```
+
+---
 
 ## Development
 
@@ -364,7 +343,7 @@ The server verifies API compatibility on connection.
 # Install dependencies
 pnpm install
 
-# Type check
+# Type checking
 pnpm typecheck
 
 # Run tests
@@ -372,86 +351,28 @@ pnpm test
 
 # Build
 pnpm build
-
-# Build Docker image
-docker build -t mcp-jira .
 ```
 
-## Testing SCRUM Guidance
+---
 
-An interactive CLI tool is provided to test the SCRUM guidance feature without needing the full MCP server.
+## Coming Soon
 
-### Running the Test Script
+The following capabilities are planned for future releases:
 
-```bash
-# Build first (required)
-pnpm build
+- **Write Operations**: Create and update issues, manage transitions
+- **Sprint Management**: Sprint creation, issue assignment, capacity planning
+- **Custom Field Mapping**: Configuration-driven field discovery
+- **Webhook Support**: Real-time issue change notifications
+- **Advanced JQL Builder**: Natural language to JQL translation
 
-# Run the interactive test
-node test-guidance.mjs
-```
+---
 
-### Features
+## Related Documentation
 
-- **Interactive credential input**: Prompts for Jira URL, email, and API token if not configured
-- **Credential storage**: Optionally saves credentials locally for future use (with security warning)
-- **Issue listing**: Shows your assigned "To Do" issues before analysis
-- **Colored output**: Visual feedback with colors for severity levels and scores
-- **Detailed analysis**: Displays recommendations, workflow actions, and follow-up prompts
+- [Main Project README](../../README.md) - Project overview and roadmap
+- [Agent Constraints](./agents.md) - AI behavior guidelines
+- [Feature Specifications](../../features/) - Detailed feature documentation
 
-### Example Session
+---
 
-```
-╔═══════════════════════════════════════════════╗
-║  ░██████╗░█████╗░██████╗░██╗░░░██╗███╗░░░███╗ ║
-║  ...                                          ║
-║     G U I D A N C E   T E S T   T O O L       ║
-╚═══════════════════════════════════════════════╝
-
-📁 Found saved credentials:
-  Jira URL:  https://company.atlassian.net
-  Email:     jor***rge@company.com
-  API Token: ****
-
-Use these saved credentials? (y/n): y
-
-Show your assigned issues? (y/n): y
-
-Found 3 issue(s) assigned to you:
-
-  PROJ-123 [STORY] Implement user authentication
-    Status: To Do  Type: Story
-
-Issue key to analyze (e.g., PROJ-123): PROJ-123
-
-╔══════════════════════════════════════════════╗
-║  RESULTS                                     ║
-╚══════════════════════════════════════════════╝
-
-  Issue:        PROJ-123 (Story)
-  Status:       new
-  Health:       65/100
-  Completeness: 70/100
-
-── Recommendations ─────────────────────────────
-
-  [CRITICAL] Missing Acceptance Criteria
-  Stories should have clear acceptance criteria...
-  → Add acceptance criteria using: Given... When... Then...
-```
-
-### Environment Variables
-
-You can skip the credential prompts by setting environment variables:
-
-```bash
-export JIRA_BASE_URL="https://your-company.atlassian.net"
-export JIRA_USER_EMAIL="your-email@company.com"
-export JIRA_API_TOKEN="your-api-token"
-node test-guidance.mjs
-```
-
-## See Also
-
-- [agents.md](./agents.md) - Agent constraints for this package
-- [Feature F001](../../features/F001-jira-read/) - Feature specification
+*Part of the MCP Jira DevFlow suite - AI-powered development workflow automation*

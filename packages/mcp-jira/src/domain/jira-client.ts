@@ -11,6 +11,7 @@
 import type { JiraConfig } from "../config/index.js";
 import type {
   JiraIssue,
+  JiraIssueExtended,
   JiraSearchOptions,
   JiraSearchResult,
   JiraPaginationOptions,
@@ -18,6 +19,7 @@ import type {
 } from "./types.js";
 import {
   mapIssue,
+  mapIssueExtended,
   mapSearchResult,
   mapCommentsResult,
   STORY_POINTS_FIELD_CANDIDATES,
@@ -133,6 +135,16 @@ const DEFAULT_SEARCH_FIELDS = [
   // Include custom fields for story points and sprints
   ...STORY_POINTS_FIELD_CANDIDATES,
   ...SPRINT_FIELD_CANDIDATES,
+];
+
+/**
+ * Extended fields for deep analysis including hierarchy and links.
+ */
+const EXTENDED_ISSUE_FIELDS = [
+  ...DEFAULT_SEARCH_FIELDS,
+  "parent",
+  "subtasks",
+  "issuelinks",
 ];
 
 export class JiraClient {
@@ -467,5 +479,81 @@ export class JiraClient {
       }
       throw error;
     }
+  }
+
+  /**
+   * Gets a single issue with extended data including parent, subtasks, and links.
+   * Used for deep analysis to understand issue hierarchy.
+   *
+   * @param issueKey - The issue key (e.g., "PROJECT-123")
+   * @returns The extended issue details with hierarchy information
+   * @throws JiraNotFoundError if the issue doesn't exist
+   */
+  async getIssueExtended(issueKey: string): Promise<JiraIssueExtended> {
+    // Validate issue key format
+    if (!/^[A-Z][A-Z0-9]*-\d+$/i.test(issueKey)) {
+      throw new Error(`Invalid issue key format: ${issueKey}`);
+    }
+
+    try {
+      const raw = await this.request<unknown>(
+        "GET",
+        `/issue/${issueKey}`,
+        {
+          params: {
+            fields: EXTENDED_ISSUE_FIELDS.join(","),
+          },
+        }
+      );
+
+      return mapIssueExtended(raw as Parameters<typeof mapIssueExtended>[0]);
+    } catch (error) {
+      if (error instanceof JiraApiError && error.statusCode === 404) {
+        throw new JiraNotFoundError(issueKey);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Gets all issues that are children of an epic.
+   * Used for deep analysis to fetch epic's child issues.
+   *
+   * @param epicKey - The epic issue key
+   * @param maxResults - Maximum number of children to fetch (default: 100)
+   * @returns Array of child issues
+   */
+  async getEpicChildren(epicKey: string, maxResults = 100): Promise<JiraIssue[]> {
+    // Validate epic key format
+    if (!/^[A-Z][A-Z0-9]*-\d+$/i.test(epicKey)) {
+      throw new Error(`Invalid epic key format: ${epicKey}`);
+    }
+
+    // Use JQL to find all issues with this epic as parent
+    // This works for both classic epics ("Epic Link") and next-gen epics (parent field)
+    const jql = `"Epic Link" = ${epicKey} OR parent = ${epicKey} ORDER BY created ASC`;
+
+    const allIssues: JiraIssue[] = [];
+    let nextPageToken: string | undefined;
+
+    // Paginate through all results
+    while (allIssues.length < maxResults) {
+      const batchSize = Math.min(50, maxResults - allIssues.length);
+      const result = await this.searchJql(jql, {
+        maxResults: batchSize,
+        nextPageToken,
+        fields: DEFAULT_SEARCH_FIELDS,
+      });
+
+      allIssues.push(...result.issues);
+
+      if (result.isLast || !result.nextPageToken) {
+        break;
+      }
+
+      nextPageToken = result.nextPageToken;
+    }
+
+    return allIssues;
   }
 }
