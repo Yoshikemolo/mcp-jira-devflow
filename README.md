@@ -121,6 +121,25 @@ Configure the story points field to use customfield_10045
 and the sprint field to use customfield_10022.
 ```
 
+### Issue History and Auditing
+
+**Problem**: You need to track when estimates were changed, who modified issues, or audit the history of critical tickets.
+
+```
+Show me the changelog for WEBAPP-150. I want to see when the story points
+were changed and by whom.
+```
+
+```
+Get the history of status changes for issue API-300.
+When did it move to In Progress and how long was it there?
+```
+
+```
+Who changed the assignee on MOBILE-88 and when? I need to understand
+the handoff history.
+```
+
 ### Advanced JQL Queries
 
 **Problem**: Complex queries require JQL expertise. You need powerful searches without memorizing syntax.
@@ -162,6 +181,7 @@ in the description and have more than 3 comments.
 | `get_issue` | Retrieve complete issue details by key |
 | `search_jql` | Execute JQL queries with pagination support |
 | `get_issue_comments` | Access issue discussion threads |
+| `get_issue_changelog` | Retrieve issue change history (field changes, status transitions, estimate updates) |
 | `jira_scrum_guidance` | SCRUM best-practice analysis with severity-ranked recommendations |
 | `get_sprint_velocity` | Team velocity metrics and sprint performance analysis |
 | `jira_deep_analysis` | Hierarchical analysis with metrics aggregation and anomaly detection |
@@ -302,7 +322,7 @@ MCP Jira DevFlow follows the principle of least privilege. Understanding which o
 
 | Operation Type | Tools | Risk Level |
 |---------------|-------|------------|
-| **Read-only** | `get_issue`, `search_jql`, `get_issue_comments`, `jira_scrum_guidance`, `get_sprint_velocity`, `jira_deep_analysis`, `get_boards`, `get_board_sprints`, `get_sprint`, `jira_discover_fields` | Low |
+| **Read-only** | `get_issue`, `search_jql`, `get_issue_comments`, `get_issue_changelog`, `jira_scrum_guidance`, `get_sprint_velocity`, `jira_deep_analysis`, `get_boards`, `get_board_sprints`, `get_sprint`, `jira_discover_fields` | Low |
 | **Write** | `create_issue`, `update_issue`, `transition_issue`, `move_issues_to_sprint`, `update_sprint`, `jira_configure_fields` | Medium |
 
 ### Recommendations
@@ -336,7 +356,7 @@ MCP Jira DevFlow follows the principle of least privilege. Understanding which o
 MCP Jira DevFlow is evolving toward a unified platform for AI-assisted enterprise development:
 
 ### Phase 1: Jira Mastery (Current)
-- [x] Read operations (issues, comments, search)
+- [x] Read operations (issues, comments, search, changelog)
 - [x] SCRUM guidance and best-practice enforcement
 - [x] Sprint velocity and performance metrics
 - [x] Deep hierarchical analysis with anomaly detection
@@ -386,7 +406,7 @@ mcp-jira-devflow/
 
 | ID | Feature | Status | Description |
 |----|---------|--------|-------------|
-| F001 | Jira Read Operations | Stable | Issue retrieval, JQL search, comments |
+| F001 | Jira Read Operations | Stable | Issue retrieval, JQL search, comments, changelog |
 | F002 | SCRUM Guidance | Stable | Best-practice analysis and recommendations |
 | F004 | Sprint Velocity | Stable | Team performance metrics |
 | F005 | Deep Analysis | Stable | Hierarchical analysis with anomaly detection |

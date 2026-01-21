@@ -464,3 +464,48 @@ export interface JiraField {
   readonly customType?: string | undefined;
   readonly itemsType?: string | undefined;
 }
+
+// ============================================================================
+// Changelog Types
+// ============================================================================
+
+/**
+ * A single item that changed within a changelog entry.
+ */
+export interface JiraChangelogItem {
+  readonly field: string;
+  readonly fieldtype: string;
+  readonly fieldId?: string | undefined;
+  readonly from?: string | undefined;
+  readonly fromString?: string | undefined;
+  readonly to?: string | undefined;
+  readonly toString?: string | undefined;
+}
+
+/**
+ * A changelog entry representing a single change event.
+ */
+export interface JiraChangelogEntry {
+  readonly id: string;
+  readonly author: JiraUser;
+  readonly created: string;
+  readonly items: readonly JiraChangelogItem[];
+}
+
+/**
+ * Paginated changelog result.
+ */
+export interface JiraChangelogResult {
+  readonly changelog: readonly JiraChangelogEntry[];
+  readonly startAt: number;
+  readonly maxResults: number;
+  readonly total: number;
+}
+
+/**
+ * Options for fetching changelog.
+ */
+export interface JiraChangelogOptions {
+  readonly startAt?: number | undefined;
+  readonly maxResults?: number | undefined;
+}
