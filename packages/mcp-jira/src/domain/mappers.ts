@@ -18,6 +18,10 @@ import type {
   JiraSearchResult,
   JiraCommentsResult,
   JiraSprint,
+  JiraIssueExtended,
+  JiraIssueRef,
+  JiraIssueLink,
+  JiraIssueLinkType,
 } from "./types.js";
 
 /**
@@ -105,6 +109,82 @@ interface RawIssue {
     components?: RawComponent[];
     // Custom fields - index signature for dynamic field names
     [key: string]: unknown;
+  };
+}
+
+/**
+ * Raw issue link type from API.
+ */
+interface RawIssueLinkType {
+  id: string;
+  name: string;
+  inward: string;
+  outward: string;
+}
+
+/**
+ * Raw linked issue reference from API.
+ */
+interface RawLinkedIssue {
+  id: string;
+  key: string;
+  self: string;
+  fields: {
+    summary: string;
+    status: RawStatus;
+    issuetype: RawIssueType;
+    priority?: RawPriority;
+  };
+}
+
+/**
+ * Raw issue link from API.
+ */
+interface RawIssueLink {
+  id: string;
+  type: RawIssueLinkType;
+  inwardIssue?: RawLinkedIssue;
+  outwardIssue?: RawLinkedIssue;
+}
+
+/**
+ * Raw parent reference from API.
+ */
+interface RawParent {
+  id: string;
+  key: string;
+  self: string;
+  fields: {
+    summary: string;
+    status: RawStatus;
+    issuetype: RawIssueType;
+    priority?: RawPriority;
+  };
+}
+
+/**
+ * Raw subtask reference from API.
+ */
+interface RawSubtask {
+  id: string;
+  key: string;
+  self: string;
+  fields: {
+    summary: string;
+    status: RawStatus;
+    issuetype: RawIssueType;
+    priority?: RawPriority;
+  };
+}
+
+/**
+ * Raw extended issue from API with parent, subtasks, and links.
+ */
+interface RawIssueExtended extends RawIssue {
+  fields: RawIssue["fields"] & {
+    parent?: RawParent;
+    subtasks?: RawSubtask[];
+    issuelinks?: RawIssueLink[];
   };
 }
 
@@ -405,5 +485,118 @@ export function mapCommentsResult(raw: {
     startAt: raw.startAt,
     maxResults: raw.maxResults,
     total: raw.total,
+  };
+}
+
+/**
+ * Maps a raw linked issue reference to domain issue ref.
+ */
+function mapLinkedIssueRef(raw: RawLinkedIssue): JiraIssueRef {
+  const status = mapStatus(raw.fields.status);
+  return {
+    id: raw.id,
+    key: raw.key,
+    summary: raw.fields.summary,
+    status: status.name,
+    statusCategory: status.categoryKey,
+    issueType: raw.fields.issuetype.name,
+    priority: raw.fields.priority?.name,
+  };
+}
+
+/**
+ * Maps a raw parent to domain issue ref.
+ */
+function mapParentRef(raw: RawParent): JiraIssueRef {
+  const status = mapStatus(raw.fields.status);
+  return {
+    id: raw.id,
+    key: raw.key,
+    summary: raw.fields.summary,
+    status: status.name,
+    statusCategory: status.categoryKey,
+    issueType: raw.fields.issuetype.name,
+    priority: raw.fields.priority?.name,
+  };
+}
+
+/**
+ * Maps a raw subtask to domain issue ref.
+ */
+function mapSubtaskRef(raw: RawSubtask): JiraIssueRef {
+  const status = mapStatus(raw.fields.status);
+  return {
+    id: raw.id,
+    key: raw.key,
+    summary: raw.fields.summary,
+    status: status.name,
+    statusCategory: status.categoryKey,
+    issueType: raw.fields.issuetype.name,
+    priority: raw.fields.priority?.name,
+  };
+}
+
+/**
+ * Maps a raw issue link type to domain link type.
+ */
+function mapIssueLinkType(raw: RawIssueLinkType): JiraIssueLinkType {
+  return {
+    id: raw.id,
+    name: raw.name,
+    inward: raw.inward,
+    outward: raw.outward,
+  };
+}
+
+/**
+ * Maps a raw issue link to domain issue link.
+ */
+export function mapIssueLink(raw: RawIssueLink): JiraIssueLink | null {
+  // Determine direction and get the linked issue
+  if (raw.inwardIssue) {
+    return {
+      id: raw.id,
+      type: mapIssueLinkType(raw.type),
+      direction: "inward",
+      linkedIssue: mapLinkedIssueRef(raw.inwardIssue),
+    };
+  }
+
+  if (raw.outwardIssue) {
+    return {
+      id: raw.id,
+      type: mapIssueLinkType(raw.type),
+      direction: "outward",
+      linkedIssue: mapLinkedIssueRef(raw.outwardIssue),
+    };
+  }
+
+  // No linked issue data (shouldn't happen in normal API responses)
+  return null;
+}
+
+/**
+ * Maps a raw extended issue to domain extended issue.
+ */
+export function mapIssueExtended(raw: RawIssueExtended): JiraIssueExtended {
+  const baseIssue = mapIssue(raw);
+  const fields = raw.fields;
+
+  // Map parent if present
+  const parent = fields.parent ? mapParentRef(fields.parent) : undefined;
+
+  // Map subtasks
+  const subtasks = (fields.subtasks ?? []).map(mapSubtaskRef);
+
+  // Map issue links (filter out nulls)
+  const issueLinks = (fields.issuelinks ?? [])
+    .map(mapIssueLink)
+    .filter((link): link is JiraIssueLink => link !== null);
+
+  return {
+    ...baseIssue,
+    parent,
+    subtasks,
+    issueLinks,
   };
 }

@@ -203,3 +203,46 @@ export interface SprintVelocitySummary {
   readonly totalCompletedPoints: number;
   readonly totalCompletedIssues: number;
 }
+
+/**
+ * Issue link type (inward/outward relationship).
+ */
+export interface JiraIssueLinkType {
+  readonly id: string;
+  readonly name: string;
+  readonly inward: string;
+  readonly outward: string;
+}
+
+/**
+ * Reference to a linked issue (minimal info).
+ */
+export interface JiraIssueRef {
+  readonly id: string;
+  readonly key: string;
+  readonly summary: string;
+  readonly status: string;
+  readonly statusCategory: "new" | "indeterminate" | "done" | "undefined";
+  readonly issueType: string;
+  readonly priority?: string | undefined;
+}
+
+/**
+ * Issue link between two issues.
+ */
+export interface JiraIssueLink {
+  readonly id: string;
+  readonly type: JiraIssueLinkType;
+  readonly direction: "inward" | "outward";
+  readonly linkedIssue: JiraIssueRef;
+}
+
+/**
+ * Extended issue with parent/subtask/link information.
+ * Used for deep analysis to understand issue hierarchy.
+ */
+export interface JiraIssueExtended extends JiraIssue {
+  readonly parent?: JiraIssueRef | undefined;
+  readonly subtasks: readonly JiraIssueRef[];
+  readonly issueLinks: readonly JiraIssueLink[];
+}
