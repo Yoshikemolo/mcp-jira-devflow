@@ -181,6 +181,52 @@ Retrieves comments from a Jira issue.
 
 Returns: List of comments with author, body, and timestamps.
 
+#### `jira_scrum_guidance`
+
+Analyzes a Jira issue and provides SCRUM best practice recommendations, workflow action suggestions, and contextual follow-up prompts.
+
+```json
+{
+  "issueKey": "PROJ-123",
+  "level": "standard"
+}
+```
+
+**Parameters:**
+- `issueKey` (required): The Jira issue key
+- `level` (optional): Detail level - `minimal` (critical issues only), `standard` (default), or `verbose` (all recommendations)
+
+**Returns:** Analysis including:
+- **Summary**: Issue metadata, health score (0-100), and completeness score (0-100)
+- **Recommendations**: SCRUM best practice issues by severity (critical, high, medium, low, info)
+- **Workflow Actions**: Suggested next steps based on issue status
+- **Follow-up Prompts**: Contextual prompts for further assistance
+
+**Issue Type Checks:**
+| Type | Key Checks |
+|------|------------|
+| Story | Acceptance criteria, user story format, description, assignee |
+| Bug | Reproduction steps, environment info, expected/actual behavior, priority |
+| Task | Description, assignee when in-progress, staleness |
+| Epic | Business value statement, description |
+| Subtask | Description, assignee when in-progress |
+
+**Example Output:**
+```
+## Summary
+- Issue: PROJ-123
+- Type: Story
+- Health Score: 65/100
+- Completeness: 70/100
+
+## Recommendations
+### [CRITICAL] Missing Acceptance Criteria
+Stories should have clear acceptance criteria...
+
+## Follow-up Prompts
+- "Help me write acceptance criteria for PROJ-123"
+```
+
 ## Security
 
 ### Best Practices
@@ -224,21 +270,28 @@ The server verifies API compatibility on connection.
 
 ```
 src/
-├── server.ts           # MCP server entry point (graceful startup)
-├── server-state.ts     # Runtime state management
+├── server.ts             # MCP server entry point (graceful startup)
+├── server-state.ts       # Runtime state management
 ├── tools/
-│   ├── index.ts        # State-aware tool registration
-│   ├── setup-guide.ts  # Setup guide tool
-│   ├── configure.ts    # Runtime configuration tool
-│   ├── get-issue.ts    # Get issue tool
-│   ├── search-jql.ts   # JQL search tool
-│   └── get-comments.ts # Get comments tool
+│   ├── index.ts          # State-aware tool registration
+│   ├── setup-guide.ts    # Setup guide tool
+│   ├── configure.ts      # Runtime configuration tool
+│   ├── get-issue.ts      # Get issue tool
+│   ├── search-jql.ts     # JQL search tool
+│   ├── get-comments.ts   # Get comments tool
+│   └── scrum-guidance.ts # SCRUM guidance tool
+├── guidance/             # SCRUM guidance module
+│   ├── index.ts          # Module exports
+│   ├── types.ts          # Guidance types
+│   ├── analyzer.ts       # Issue analysis logic
+│   ├── rules.ts          # SCRUM rules & field checks
+│   └── prompts.ts        # Follow-up prompt generator
 ├── config/
-│   └── schema.ts       # Configuration validation
+│   └── schema.ts         # Configuration validation
 └── domain/
-    ├── types.ts        # Domain types
-    ├── jira-client.ts  # Jira API client
-    └── mappers.ts      # Response mappers
+    ├── types.ts          # Domain types
+    ├── jira-client.ts    # Jira API client
+    └── mappers.ts        # Response mappers
 ```
 
 ## Development

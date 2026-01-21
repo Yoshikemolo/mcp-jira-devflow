@@ -22,6 +22,7 @@ import { configureTool, executeConfigure } from "./configure.js";
 import { getIssueTool, executeGetIssue } from "./get-issue.js";
 import { searchJqlTool, executeSearchJql } from "./search-jql.js";
 import { getCommentsTool, executeGetComments } from "./get-comments.js";
+import { scrumGuidanceTool, executeScrumGuidance } from "./scrum-guidance.js";
 
 /**
  * Tool definition type.
@@ -48,6 +49,7 @@ const jiraTools: ToolDefinition[] = [
   getIssueTool,
   searchJqlTool,
   getCommentsTool,
+  scrumGuidanceTool,
 ];
 
 /**
@@ -154,6 +156,9 @@ export function registerTools(server: Server): void {
       case "get_issue_comments":
         return executeGetComments(client, args);
 
+      case "jira_scrum_guidance":
+        return executeScrumGuidance(client, args);
+
       default:
         return {
           content: [
@@ -174,3 +179,4 @@ export { searchJqlTool, executeSearchJql } from "./search-jql.js";
 export { getCommentsTool, executeGetComments } from "./get-comments.js";
 export { setupGuideTool, executeSetupGuide } from "./setup-guide.js";
 export { configureTool, executeConfigure } from "./configure.js";
+export { scrumGuidanceTool, executeScrumGuidance } from "./scrum-guidance.js";

@@ -19,6 +19,7 @@ secrets.json
 **/credentials/
 .netrc
 .npmrc.local
+.jira-test-config.json
 
 # Build output
 dist/
