@@ -4,7 +4,7 @@
 
 MCP Jira DevFlow is a comprehensive suite of Model Context Protocol (MCP) servers that bridge AI agents with Jira and Git, enabling intelligent automation across the entire software development lifecycle. From sprint planning to deployment, empower your team with AI-assisted workflows that understand your SCRUM process.
 
-MCP Jira DevFlow made by senior software engineers for all software developers and scrum masters.
+Built by practitioners for SCRUM teams that want to automate Jira workflows with AI.
 
 ---
 
@@ -111,6 +111,43 @@ mcp-jira-devflow/
 
 ---
 
+## Compatibility
+
+| Component | Supported | Notes |
+|-----------|-----------|-------|
+| **Jira Cloud** | Yes | Fully tested and production-ready |
+| **Jira Server / Data Center** | No | Uses Cloud-only REST API v3 endpoints |
+| **Node.js** | 20.0.0+ | Required for ES modules and native fetch |
+| **pnpm** | 9.0.0+ | Required for workspace management |
+| **MCP Protocol** | 1.0+ | Compatible with Claude Desktop and Claude Code |
+
+---
+
+## Security and Permissions
+
+MCP Jira DevFlow follows the principle of least privilege. Understanding which operations modify data helps you configure appropriate access controls.
+
+### Read vs Write Operations
+
+| Operation Type | Tools | Risk Level |
+|---------------|-------|------------|
+| **Read-only** | `get_issue`, `search_jql`, `get_issue_comments`, `jira_scrum_guidance`, `get_sprint_velocity`, `jira_deep_analysis`, `get_boards`, `get_board_sprints`, `get_sprint`, `jira_discover_fields` | Low |
+| **Write** | `create_issue`, `update_issue`, `transition_issue`, `move_issues_to_sprint`, `update_sprint`, `jira_configure_fields` | Medium |
+
+### Recommendations
+
+1. **Use service accounts**: Create a dedicated Jira user for MCP integrations instead of using personal credentials. This provides audit trails and allows granular permission control.
+
+2. **Apply project restrictions**: Configure the service account with access only to projects that require AI automation. Jira Cloud allows project-level permission schemes.
+
+3. **Enable dry-run mode**: Write operations like `create_issue`, `update_issue`, and `move_issues_to_sprint` support `dryRun: true` to validate operations without executing them.
+
+4. **Rotate API tokens**: Jira API tokens do not expire automatically. Establish a rotation policy (e.g., quarterly) and store tokens securely using environment variables or secret managers.
+
+5. **Monitor usage**: Review the Jira audit log periodically to track actions performed by the service account.
+
+---
+
 ## Quick Start
 
 ### Prerequisites
@@ -204,6 +241,8 @@ Different Jira instances use different custom field IDs for Story Points and Spr
 | `JIRA_FIELD_STORY_POINTS` | Custom field ID for Story Points | `customfield_10016` |
 | `JIRA_FIELD_SPRINT` | Custom field ID for Sprint | `customfield_10020` |
 
+**Full config (with custom fields):**
+
 ```json
 {
   "mcpServers": {
@@ -239,6 +278,8 @@ If you don't know your field IDs, use the discovery and configuration tools:
 ### Claude Desktop Integration
 
 Add to `~/.claude/claude_desktop_config.json`:
+
+**Minimal config:**
 
 ```json
 {
