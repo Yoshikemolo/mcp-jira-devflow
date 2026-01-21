@@ -1,10 +1,24 @@
 # Dependencies
 node_modules/
 
-# Environment
+# Environment - NEVER commit these
 .env
 .env.local
 .env.*.local
+.env.production
+.env.development
+
+# Secrets and credentials - NEVER commit these
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+**/secrets/
+**/credentials/
+.netrc
+.npmrc.local
 
 # Build output
 dist/
