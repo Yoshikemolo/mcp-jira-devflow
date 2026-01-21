@@ -6,7 +6,7 @@ F001-jira-read
 
 ## Status
 
-**Not Started**
+**Implemented**
 
 ## Summary
 

@@ -1,0 +1,45 @@
+# Dependencies (will be installed fresh in container)
+node_modules/
+
+# Build output (will be built in container)
+dist/
+
+# Environment files (credentials - NEVER include in image)
+.env
+.env.*
+
+# IDE and editor
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Tests
+__tests__/
+*.test.ts
+*.spec.ts
+coverage/
+.nyc_output/
+
+# Documentation
+*.md
+docs/
+
+# Development files
+.eslintrc*
+.prettierrc*
+vitest.config.*
+tsconfig.*.json
+
+# Docker
+Dockerfile
+docker-compose*.yml
+.dockerignore

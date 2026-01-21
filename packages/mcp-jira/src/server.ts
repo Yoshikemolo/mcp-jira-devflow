@@ -2,11 +2,22 @@
  * MCP Jira Server
  *
  * Entry point for the Jira MCP server.
- * This is a placeholder - implementation will follow feature specifications.
+ * Provides tools for reading Jira issues, searching with JQL, and retrieving comments.
+ *
+ * The server supports graceful startup:
+ * - With valid credentials: All Jira tools are available
+ * - Without credentials: Setup tools guide the user through configuration
  */
 
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
+import {
+  tryLoadConfigFromEnv,
+  getMissingConfigFields,
+} from "./config/index.js";
+import { JiraClient } from "./domain/jira-client.js";
+import { registerTools } from "./tools/index.js";
+import { setConfigured, setUnconfigured } from "./server-state.js";
 
 const SERVER_NAME = "mcp-jira";
 const SERVER_VERSION = "0.1.0";
@@ -27,7 +38,8 @@ function createServer(): Server {
     }
   );
 
-  // Tools will be registered here as features are implemented
+  // Register all tools (state-aware)
+  registerTools(server);
 
   return server;
 }
@@ -36,6 +48,30 @@ function createServer(): Server {
  * Main entry point.
  */
 async function main(): Promise<void> {
+  // Try to load configuration from environment (graceful - no exit on failure)
+  const config = tryLoadConfigFromEnv();
+
+  if (config) {
+    // Configuration available - create client and set configured state
+    const client = new JiraClient(config);
+    setConfigured(config, client);
+    console.error(
+      `${SERVER_NAME} v${SERVER_VERSION} started (configured: ${config.baseUrl})`
+    );
+  } else {
+    // No configuration - start in unconfigured mode
+    setUnconfigured();
+    const missing = getMissingConfigFields();
+    const missingVars = missing.map((f) => f.envVar).join(", ");
+    console.error(
+      `${SERVER_NAME} v${SERVER_VERSION} started (unconfigured - missing: ${missingVars})`
+    );
+    console.error(
+      "Use jira_setup_guide tool for setup instructions, or jira_configure to set credentials."
+    );
+  }
+
+  // Create and start server
   const server = createServer();
   const transport = new StdioServerTransport();
 
@@ -43,6 +79,7 @@ async function main(): Promise<void> {
 
   // Graceful shutdown
   process.on("SIGINT", async () => {
+    console.error("Shutting down...");
     await server.close();
     process.exit(0);
   });
