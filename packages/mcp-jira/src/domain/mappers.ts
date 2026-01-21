@@ -22,6 +22,8 @@ import type {
   JiraIssueRef,
   JiraIssueLink,
   JiraIssueLinkType,
+  JiraTransition,
+  JiraTransitionsResult,
 } from "./types.js";
 
 /**
@@ -598,5 +600,84 @@ export function mapIssueExtended(raw: RawIssueExtended): JiraIssueExtended {
     parent,
     subtasks,
     issueLinks,
+  };
+}
+
+// ============================================================================
+// Transition Mappers
+// ============================================================================
+
+/**
+ * Raw transition from Jira API.
+ */
+interface RawTransition {
+  id: string;
+  name: string;
+  to: RawStatus;
+  hasScreen?: boolean;
+  isGlobal?: boolean;
+  isInitial?: boolean;
+  isConditional?: boolean;
+}
+
+/**
+ * Maps a raw transition to domain transition.
+ */
+export function mapTransition(raw: RawTransition): JiraTransition {
+  return {
+    id: raw.id,
+    name: raw.name,
+    to: mapStatus(raw.to),
+    hasScreen: raw.hasScreen ?? false,
+    isGlobal: raw.isGlobal ?? false,
+    isInitial: raw.isInitial ?? false,
+    isConditional: raw.isConditional ?? false,
+  };
+}
+
+/**
+ * Maps a raw transitions response to domain transitions result.
+ */
+export function mapTransitionsResult(raw: {
+  transitions: RawTransition[];
+}): JiraTransitionsResult {
+  return {
+    transitions: raw.transitions.map(mapTransition),
+  };
+}
+
+/**
+ * Converts plain text to Atlassian Document Format (ADF).
+ * This is the format required by Jira API v3 for description fields.
+ */
+export function textToAdf(text: string): object {
+  // Split text into paragraphs by double newlines
+  const paragraphs = text.split(/\n\n+/).filter((p) => p.trim());
+
+  const content = paragraphs.map((paragraph) => {
+    // Handle single newlines within a paragraph as hard breaks
+    const lines = paragraph.split(/\n/);
+    const inlineContent: Array<{ type: string; text?: string }> = [];
+
+    lines.forEach((line, index) => {
+      if (line.trim()) {
+        inlineContent.push({ type: "text", text: line });
+      }
+      // Add hardBreak between lines (but not after the last line)
+      if (index < lines.length - 1) {
+        inlineContent.push({ type: "hardBreak" });
+      }
+    });
+
+    return {
+      type: "paragraph",
+      content: inlineContent.filter((item) => item.type === "hardBreak" || item.text),
+    };
+  });
+
+  return {
+    type: "doc",
+    version: 1,
+    content: content.length > 0 ? content : [{ type: "paragraph", content: [] }],
   };
 }

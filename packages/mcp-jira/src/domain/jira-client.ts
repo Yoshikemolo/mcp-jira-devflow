@@ -16,12 +16,21 @@ import type {
   JiraSearchResult,
   JiraPaginationOptions,
   JiraCommentsResult,
+  CreateIssueInput,
+  UpdateIssueInput,
+  TransitionIssueInput,
+  CreateIssueResult,
+  UpdateIssueResult,
+  TransitionIssueResult,
+  JiraTransitionsResult,
 } from "./types.js";
 import {
   mapIssue,
   mapIssueExtended,
   mapSearchResult,
   mapCommentsResult,
+  mapTransitionsResult,
+  textToAdf,
   STORY_POINTS_FIELD_CANDIDATES,
   SPRINT_FIELD_CANDIDATES,
 } from "./mappers.js";
@@ -597,5 +606,235 @@ export class JiraClient {
     }
 
     return allIssues;
+  }
+
+  // ============================================================================
+  // Write Operations
+  // ============================================================================
+
+  /**
+   * Creates a new Jira issue.
+   *
+   * @param input - The issue creation input
+   * @returns The created issue key and ID
+   */
+  async createIssue(input: CreateIssueInput): Promise<CreateIssueResult> {
+    // Build the fields object for the API
+    const fields: Record<string, unknown> = {
+      project: { key: input.projectKey },
+      summary: input.summary,
+      issuetype: { name: input.issueTypeName },
+    };
+
+    // Add optional fields
+    if (input.description) {
+      fields["description"] = textToAdf(input.description);
+    }
+
+    if (input.assigneeAccountId) {
+      fields["assignee"] = { accountId: input.assigneeAccountId };
+    }
+
+    if (input.priorityName) {
+      fields["priority"] = { name: input.priorityName };
+    }
+
+    if (input.labels && input.labels.length > 0) {
+      fields["labels"] = [...input.labels];
+    }
+
+    if (input.parentKey) {
+      fields["parent"] = { key: input.parentKey };
+    }
+
+    // Story points - try the first known custom field
+    if (input.storyPoints !== undefined) {
+      fields[STORY_POINTS_FIELD_CANDIDATES[0]] = input.storyPoints;
+    }
+
+    const response = await this.request<{
+      id: string;
+      key: string;
+      self: string;
+    }>("POST", "/issue", {
+      body: { fields },
+    });
+
+    return {
+      id: response.id,
+      key: response.key,
+      self: response.self,
+    };
+  }
+
+  /**
+   * Updates an existing Jira issue.
+   *
+   * @param input - The issue update input (partial update)
+   * @returns Success indicator
+   */
+  async updateIssue(input: UpdateIssueInput): Promise<UpdateIssueResult> {
+    // Validate issue key format
+    if (!/^[A-Z][A-Z0-9]*-\d+$/i.test(input.issueKey)) {
+      throw new Error(`Invalid issue key format: ${input.issueKey}`);
+    }
+
+    // Build the fields object for partial update
+    const fields: Record<string, unknown> = {};
+
+    if (input.summary !== undefined) {
+      fields["summary"] = input.summary;
+    }
+
+    if (input.description !== undefined) {
+      fields["description"] = textToAdf(input.description);
+    }
+
+    if (input.assigneeAccountId !== undefined) {
+      fields["assignee"] = input.assigneeAccountId
+        ? { accountId: input.assigneeAccountId }
+        : null; // null to unassign
+    }
+
+    if (input.priorityName !== undefined) {
+      fields["priority"] = { name: input.priorityName };
+    }
+
+    if (input.labels !== undefined) {
+      fields["labels"] = [...input.labels];
+    }
+
+    // Story points - try the first known custom field
+    if (input.storyPoints !== undefined) {
+      fields[STORY_POINTS_FIELD_CANDIDATES[0]] = input.storyPoints;
+    }
+
+    // Only make the request if there are fields to update
+    if (Object.keys(fields).length === 0) {
+      return { success: true, issueKey: input.issueKey };
+    }
+
+    try {
+      await this.request<void>("PUT", `/issue/${input.issueKey}`, {
+        body: { fields },
+      });
+
+      return { success: true, issueKey: input.issueKey };
+    } catch (error) {
+      if (error instanceof JiraApiError && error.statusCode === 404) {
+        throw new JiraNotFoundError(input.issueKey);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Gets available transitions for an issue.
+   *
+   * @param issueKey - The issue key
+   * @returns Available transitions
+   */
+  async getTransitions(issueKey: string): Promise<JiraTransitionsResult> {
+    // Validate issue key format
+    if (!/^[A-Z][A-Z0-9]*-\d+$/i.test(issueKey)) {
+      throw new Error(`Invalid issue key format: ${issueKey}`);
+    }
+
+    try {
+      const raw = await this.request<unknown>(
+        "GET",
+        `/issue/${issueKey}/transitions`
+      );
+
+      return mapTransitionsResult(raw as Parameters<typeof mapTransitionsResult>[0]);
+    } catch (error) {
+      if (error instanceof JiraApiError && error.statusCode === 404) {
+        throw new JiraNotFoundError(issueKey);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * Transitions an issue to a new status.
+   *
+   * @param input - The transition input
+   * @returns Result with the new status
+   */
+  async transitionIssue(input: TransitionIssueInput): Promise<TransitionIssueResult> {
+    // Validate issue key format
+    if (!/^[A-Z][A-Z0-9]*-\d+$/i.test(input.issueKey)) {
+      throw new Error(`Invalid issue key format: ${input.issueKey}`);
+    }
+
+    // Determine the transition ID
+    let transitionId = input.transitionId;
+    let transitionName = input.transitionName;
+
+    // If transitionName is provided but not transitionId, look it up
+    if (!transitionId && transitionName) {
+      const availableTransitions = await this.getTransitions(input.issueKey);
+      const match = availableTransitions.transitions.find(
+        (t) => t.name.toLowerCase() === transitionName!.toLowerCase()
+      );
+
+      if (!match) {
+        const available = availableTransitions.transitions.map((t) => t.name).join(", ");
+        throw new Error(
+          `Transition '${transitionName}' not found. Available: ${available}`
+        );
+      }
+
+      transitionId = match.id;
+      transitionName = match.name;
+    }
+
+    if (!transitionId) {
+      throw new Error("Either transitionId or transitionName must be provided");
+    }
+
+    // Build the request body
+    const body: Record<string, unknown> = {
+      transition: { id: transitionId },
+    };
+
+    // Add fields if provided (e.g., resolution)
+    if (input.fields) {
+      body["fields"] = input.fields;
+    }
+
+    // Add comment if provided
+    if (input.comment) {
+      body["update"] = {
+        comment: [
+          {
+            add: {
+              body: textToAdf(input.comment),
+            },
+          },
+        ],
+      };
+    }
+
+    try {
+      await this.request<void>("POST", `/issue/${input.issueKey}/transitions`, {
+        body,
+      });
+
+      // Get the updated issue to return the new status
+      const updatedIssue = await this.getIssue(input.issueKey);
+
+      return {
+        success: true,
+        issueKey: input.issueKey,
+        transitionName: transitionName ?? `Transition ${transitionId}`,
+        newStatus: updatedIssue.status.name,
+      };
+    } catch (error) {
+      if (error instanceof JiraApiError && error.statusCode === 404) {
+        throw new JiraNotFoundError(input.issueKey);
+      }
+      throw error;
+    }
   }
 }

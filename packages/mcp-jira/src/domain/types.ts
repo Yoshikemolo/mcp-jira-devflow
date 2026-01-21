@@ -246,3 +246,93 @@ export interface JiraIssueExtended extends JiraIssue {
   readonly subtasks: readonly JiraIssueRef[];
   readonly issueLinks: readonly JiraIssueLink[];
 }
+
+// ============================================================================
+// Write Operations Types
+// ============================================================================
+
+/**
+ * Input for creating a new Jira issue.
+ */
+export interface CreateIssueInput {
+  readonly projectKey: string;
+  readonly summary: string;
+  readonly issueTypeName: string;
+  readonly description?: string | undefined;
+  readonly assigneeAccountId?: string | undefined;
+  readonly priorityName?: string | undefined;
+  readonly labels?: readonly string[] | undefined;
+  readonly parentKey?: string | undefined;
+  readonly storyPoints?: number | undefined;
+}
+
+/**
+ * Input for updating an existing Jira issue.
+ */
+export interface UpdateIssueInput {
+  readonly issueKey: string;
+  readonly summary?: string | undefined;
+  readonly description?: string | undefined;
+  readonly assigneeAccountId?: string | null | undefined;
+  readonly priorityName?: string | undefined;
+  readonly labels?: readonly string[] | undefined;
+  readonly storyPoints?: number | undefined;
+}
+
+/**
+ * Jira workflow transition.
+ */
+export interface JiraTransition {
+  readonly id: string;
+  readonly name: string;
+  readonly to: JiraStatus;
+  readonly hasScreen: boolean;
+  readonly isGlobal: boolean;
+  readonly isInitial: boolean;
+  readonly isConditional: boolean;
+}
+
+/**
+ * Result of listing available transitions for an issue.
+ */
+export interface JiraTransitionsResult {
+  readonly transitions: readonly JiraTransition[];
+}
+
+/**
+ * Input for transitioning an issue to a new status.
+ */
+export interface TransitionIssueInput {
+  readonly issueKey: string;
+  readonly transitionId?: string | undefined;
+  readonly transitionName?: string | undefined;
+  readonly fields?: Record<string, unknown> | undefined;
+  readonly comment?: string | undefined;
+}
+
+/**
+ * Result of creating an issue.
+ */
+export interface CreateIssueResult {
+  readonly id: string;
+  readonly key: string;
+  readonly self: string;
+}
+
+/**
+ * Result of updating an issue.
+ */
+export interface UpdateIssueResult {
+  readonly success: boolean;
+  readonly issueKey: string;
+}
+
+/**
+ * Result of transitioning an issue.
+ */
+export interface TransitionIssueResult {
+  readonly success: boolean;
+  readonly issueKey: string;
+  readonly transitionName: string;
+  readonly newStatus: string;
+}

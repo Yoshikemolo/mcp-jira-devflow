@@ -32,6 +32,9 @@ import { getCommentsTool, executeGetComments } from "./get-comments.js";
 import { scrumGuidanceTool, executeScrumGuidance } from "./scrum-guidance.js";
 import { sprintVelocityTool, executeSprintVelocity } from "./get-sprint-velocity.js";
 import { deepAnalysisTool, executeDeepAnalysis } from "./deep-analysis.js";
+import { createIssueTool, executeCreateIssue } from "./create-issue.js";
+import { updateIssueTool, executeUpdateIssue } from "./update-issue.js";
+import { transitionIssueTool, executeTransitionIssue } from "./transition-issue.js";
 
 /**
  * Tool definition type.
@@ -66,6 +69,9 @@ const jiraTools: ToolDefinition[] = [
   scrumGuidanceTool,
   sprintVelocityTool,
   deepAnalysisTool,
+  createIssueTool,
+  updateIssueTool,
+  transitionIssueTool,
 ];
 
 /**
@@ -194,6 +200,15 @@ export function registerTools(server: Server): void {
       case "jira_deep_analysis":
         return executeDeepAnalysis(client, args);
 
+      case "create_issue":
+        return executeCreateIssue(client, args);
+
+      case "update_issue":
+        return executeUpdateIssue(client, args);
+
+      case "transition_issue":
+        return executeTransitionIssue(client, args);
+
       default:
         return {
           content: [
@@ -217,3 +232,6 @@ export { configureTool, executeConfigure } from "./configure.js";
 export { scrumGuidanceTool, executeScrumGuidance } from "./scrum-guidance.js";
 export { sprintVelocityTool, executeSprintVelocity } from "./get-sprint-velocity.js";
 export { deepAnalysisTool, executeDeepAnalysis } from "./deep-analysis.js";
+export { createIssueTool, executeCreateIssue } from "./create-issue.js";
+export { updateIssueTool, executeUpdateIssue } from "./update-issue.js";
+export { transitionIssueTool, executeTransitionIssue } from "./transition-issue.js";
