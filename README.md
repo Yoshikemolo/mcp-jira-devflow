@@ -21,337 +21,6 @@ Whether you are managing a single project or orchestrating multiple enterprise a
 
 ---
 
-## Current Capabilities
-
-### Jira Integration (Production Ready)
-
-| Feature | Description |
-|---------|-------------|
-| **Issue Management** | Retrieve, search, and analyze Jira issues with full JQL support |
-| **SCRUM Guidance** | Automated best-practice analysis with health scores and actionable recommendations |
-| **Sprint Velocity** | Historical velocity metrics with trend analysis across multiple sprints |
-| **Deep Analysis** | Hierarchical issue analysis with anomaly detection (points mismatch, stale items, unassigned work) |
-| **Board & Sprint Management** | List boards, manage sprints, move issues between sprints with state validation |
-| **Token Optimization** | Intelligent output compression that adapts to result size |
-
-### Available Tools
-
-| Tool | Purpose |
-|------|---------|
-| `get_issue` | Retrieve complete issue details by key |
-| `search_jql` | Execute JQL queries with pagination support |
-| `get_issue_comments` | Access issue discussion threads |
-| `jira_scrum_guidance` | SCRUM best-practice analysis with severity-ranked recommendations |
-| `get_sprint_velocity` | Team velocity metrics and sprint performance analysis |
-| `jira_deep_analysis` | Hierarchical analysis with metrics aggregation and anomaly detection |
-| `create_issue` | Create new issues with full field support (subtasks, story points, labels) |
-| `update_issue` | Update existing issues (summary, description, assignee, priority, etc.) |
-| `transition_issue` | Transition issues between workflow states |
-| `get_boards` | List Jira boards with project/type/name filters |
-| `get_board_sprints` | List sprints for a board (future/active/closed) |
-| `get_sprint` | Get sprint details with issues and metrics |
-| `move_issues_to_sprint` | Move issues to a sprint (with dry run support) |
-| `update_sprint` | Update sprint name, dates, goal, or state |
-| `jira_configure_fields` | Configure custom field mappings for Story Points and Sprint |
-| `jira_discover_fields` | Discover available custom fields from your Jira instance |
-| `jira_dev_reload` | Development only: triggers graceful server restart to apply code changes |
-
----
-
-## Roadmap: The Complete DevFlow Vision
-
-MCP Jira DevFlow is evolving toward a unified platform for AI-assisted enterprise development:
-
-### Phase 1: Jira Mastery (Current)
-- [x] Read operations (issues, comments, search)
-- [x] SCRUM guidance and best-practice enforcement
-- [x] Sprint velocity and performance metrics
-- [x] Deep hierarchical analysis with anomaly detection
-- [x] Write operations (create, update, transition issues)
-- [x] Board and sprint management
-- [x] Custom field mapping and configuration
-
-### Phase 2: Git Integration (Upcoming)
-- [ ] Repository context awareness
-- [ ] Branch management aligned with Jira issues
-- [ ] Automated PR creation with issue linking
-- [ ] Commit message validation against issue requirements
-- [ ] Code review assistance with context from Jira specifications
-
-### Phase 3: Unified DevFlow (Future)
-- [ ] End-to-end sprint planning with AI recommendations
-- [ ] Automated documentation generation from issue hierarchies
-- [ ] Release notes compilation from completed work
-- [ ] Cross-project dependency analysis
-- [ ] Predictive analytics for sprint planning
-- [ ] CI/CD integration for deployment tracking
-
----
-
-## Architecture
-
-```
-mcp-jira-devflow/
-├── packages/
-│   ├── mcp-jira/           # Jira integration server (Production)
-│   ├── mcp-devflow/        # Git and workflow automation (Development)
-│   └── shared/             # Common utilities and types
-├── features/               # Feature specifications
-├── skills/                 # Agent behavior definitions
-└── docs/                   # Technical documentation
-```
-
-### Design Principles
-
-- **Domain-Driven**: Clean separation between API, domain logic, and presentation
-- **Token-Aware**: All outputs optimized for AI context window efficiency
-- **Extensible**: Plugin architecture for custom integrations
-- **Secure**: Read-only by default, explicit permissions for write operations
-- **Observable**: Comprehensive logging and error handling
-
----
-
-## Compatibility
-
-| Component | Supported | Notes |
-|-----------|-----------|-------|
-| **Jira Cloud** | Yes | Fully tested and production-ready |
-| **Jira Server / Data Center** | No | Uses Cloud-only REST API v3 endpoints |
-| **Node.js** | 20.0.0+ | Required for ES modules and native fetch |
-| **pnpm** | 9.0.0+ | Required for workspace management |
-| **MCP Protocol** | 1.0+ | Compatible with Claude Desktop and Claude Code |
-
----
-
-## Security and Permissions
-
-MCP Jira DevFlow follows the principle of least privilege. Understanding which operations modify data helps you configure appropriate access controls.
-
-### Read vs Write Operations
-
-| Operation Type | Tools | Risk Level |
-|---------------|-------|------------|
-| **Read-only** | `get_issue`, `search_jql`, `get_issue_comments`, `jira_scrum_guidance`, `get_sprint_velocity`, `jira_deep_analysis`, `get_boards`, `get_board_sprints`, `get_sprint`, `jira_discover_fields` | Low |
-| **Write** | `create_issue`, `update_issue`, `transition_issue`, `move_issues_to_sprint`, `update_sprint`, `jira_configure_fields` | Medium |
-
-### Recommendations
-
-1. **Use service accounts**: Create a dedicated Jira user for MCP integrations instead of using personal credentials. This provides audit trails and allows granular permission control.
-
-2. **Apply project restrictions**: Configure the service account with access only to projects that require AI automation. Jira Cloud allows project-level permission schemes.
-
-3. **Use dry-run mode when available**: Some write operations (`create_issue`, `update_issue`, `move_issues_to_sprint`, `update_sprint`) support `dryRun: true` to validate without executing. Note that `transition_issue` does not support dry-run.
-
-4. **Rotate API tokens**: Jira API tokens do not expire automatically. Establish a rotation policy (e.g., quarterly) and store tokens securely using environment variables or secret managers.
-
-5. **Monitor usage**: Review the Jira audit log periodically to track actions performed by the service account.
-
----
-
-## Quick Start
-
-### Prerequisites
-
-- Node.js >= 20.0.0
-- pnpm >= 9.0.0
-- Jira Cloud instance with API access
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/ximplicity/mcp-jira-devflow.git
-cd mcp-jira-devflow
-
-# Install dependencies
-pnpm install
-
-# Build all packages
-pnpm build
-
-# Run tests
-pnpm test
-```
-
-### Configuration
-
-Set the required environment variables (via `.env` file, shell export, or inline):
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `JIRA_BASE_URL` | Your Jira instance URL (e.g., `https://company.atlassian.net`) | Yes |
-| `JIRA_USER_EMAIL` | Your Jira account email | Yes |
-| `JIRA_API_TOKEN` | Your Jira API token ([generate here](https://id.atlassian.com/manage-profile/security/api-tokens)) | Yes |
-
-```bash
-# Option: Create a .env file
-cp .env.example .env
-# Then edit .env with your credentials
-```
-
-### Run Locally
-
-Once configured, run the MCP server directly from the command line:
-
-```bash
-# Using environment variables (export or .env)
-pnpm -C packages/mcp-jira start
-
-# Or inline for quick testing
-JIRA_BASE_URL=https://your-domain.atlassian.net \
-JIRA_USER_EMAIL=your-email@example.com \
-JIRA_API_TOKEN=your-api-token \
-pnpm -C packages/mcp-jira start
-```
-
-The server communicates via stdio using the MCP protocol. It outputs startup information to stderr and waits for MCP commands on stdin.
-
-### Custom Field Configuration
-
-Different Jira instances use different custom field IDs for Story Points and Sprint fields. You can configure these via environment variables or at runtime.
-
-#### Environment Variables (Recommended)
-
-| Variable | Description | Example |
-|----------|-------------|---------|
-| `JIRA_FIELD_STORY_POINTS` | Custom field ID for Story Points | `customfield_10016` |
-| `JIRA_FIELD_SPRINT` | Custom field ID for Sprint | `customfield_10020` |
-
-**Full config (with custom fields):**
-
-```json
-{
-  "mcpServers": {
-    "jira": {
-      "command": "node",
-      "args": ["/path/to/mcp-jira-devflow/packages/mcp-jira/dist/server.js"],
-      "env": {
-        "JIRA_BASE_URL": "https://your-company.atlassian.net",
-        "JIRA_USER_EMAIL": "your-email@company.com",
-        "JIRA_API_TOKEN": "your-api-token",
-        "JIRA_FIELD_STORY_POINTS": "customfield_10016",
-        "JIRA_FIELD_SPRINT": "customfield_10020"
-      }
-    }
-  }
-}
-```
-
-#### Runtime Configuration
-
-If you don't know your field IDs, use the discovery and configuration tools:
-
-1. **Discover fields**: Use `jira_discover_fields` to find available custom fields
-   - Filter by name: `jira_discover_fields(search: 'story')`
-   - Filter by type: `jira_discover_fields(type: 'number')` for Story Points candidates
-   - Filter by type: `jira_discover_fields(type: 'array')` for Sprint candidates
-
-2. **Configure fields**: Use `jira_configure_fields` to set your field mappings
-   - Set Story Points: `jira_configure_fields(storyPoints: 'customfield_10016')`
-   - Set Sprint: `jira_configure_fields(sprint: 'customfield_10020')`
-   - Reset to defaults: `jira_configure_fields(reset: true)`
-
-### Claude Desktop Integration
-
-Add to `~/.claude/claude_desktop_config.json`:
-
-**Minimal config:**
-
-```json
-{
-  "mcpServers": {
-    "jira": {
-      "command": "node",
-      "args": ["/path/to/mcp-jira-devflow/packages/mcp-jira/dist/server.js"],
-      "env": {
-        "JIRA_BASE_URL": "https://your-company.atlassian.net",
-        "JIRA_USER_EMAIL": "your-email@company.com",
-        "JIRA_API_TOKEN": "your-api-token"
-      }
-    }
-  }
-}
-```
-
-### Development Mode
-
-For contributors and developers working on the MCP server, a hot-reload mode is available that watches for file changes and notifies connected clients.
-
-#### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `JIRA_MCP_DEV` | Enable development mode with file watcher | `false` |
-| `JIRA_MCP_AUTO_RESTART` | Automatically restart server on file changes | `false` |
-| `JIRA_MCP_DEBOUNCE_MS` | Debounce delay for file change detection (ms) | `500` |
-
-#### Development Workflow
-
-1. Enable development mode in your Claude Desktop config:
-
-```json
-{
-  "mcpServers": {
-    "jira": {
-      "command": "node",
-      "args": ["/path/to/mcp-jira-devflow/packages/mcp-jira/dist/server.js"],
-      "env": {
-        "JIRA_BASE_URL": "https://your-company.atlassian.net",
-        "JIRA_USER_EMAIL": "your-email@company.com",
-        "JIRA_API_TOKEN": "your-api-token",
-        "JIRA_MCP_DEV": "true"
-      }
-    }
-  }
-}
-```
-
-2. Run TypeScript in watch mode:
-
-```bash
-cd packages/mcp-jira
-pnpm build --watch
-```
-
-3. When you make changes:
-   - TypeScript compiles to `dist/`
-   - The watcher detects changes and logs them
-   - Use the `jira_dev_reload` tool to trigger a graceful restart
-   - Claude Code automatically reconnects with the updated code
-
----
-
-## Feature Status
-
-| ID | Feature | Status | Description |
-|----|---------|--------|-------------|
-| F001 | Jira Read Operations | Stable | Issue retrieval, JQL search, comments |
-| F002 | SCRUM Guidance | Stable | Best-practice analysis and recommendations |
-| F004 | Sprint Velocity | Stable | Team performance metrics |
-| F005 | Deep Analysis | Stable | Hierarchical analysis with anomaly detection |
-| F006 | Jira Write Operations | Stable | Issue creation and updates |
-| F009 | Board & Sprint Management | Stable | Board listing, sprint operations, issue movement |
-| F007 | Git Integration | Planned | Repository and branch management |
-| F008 | PR Automation | Planned | Automated pull request workflows |
-
----
-
-## Use Cases
-
-### Sprint Planning
-Analyze your backlog with deep hierarchical insights. Detect estimation inconsistencies before sprint commitment. Get AI-powered recommendations for story breakdown and capacity planning.
-
-### Daily Standups
-Quickly surface stale in-progress items, unassigned sprint work, and blockers. Generate status summaries with context from related issues.
-
-### Retrospectives
-Review sprint velocity trends, completion rates, and team performance metrics. Identify patterns across multiple sprints for continuous improvement.
-
-### Code Reviews
-Connect PR context with Jira requirements. Ensure acceptance criteria alignment and track completion status directly from your development workflow.
-
----
-
 ## Prompt Examples
 
 Stop context-switching between Jira and your IDE. These prompts demonstrate how MCP Jira DevFlow transforms natural language into actionable Jira intelligence.
@@ -470,6 +139,277 @@ changed after sprint start.
 Search for tickets in project PLATFORM that mention "performance"
 in the description and have more than 3 comments.
 ```
+
+---
+
+## Current Capabilities
+
+### Jira Integration (Production Ready)
+
+| Feature | Description |
+|---------|-------------|
+| **Issue Management** | Retrieve, search, and analyze Jira issues with full JQL support |
+| **SCRUM Guidance** | Automated best-practice analysis with health scores and actionable recommendations |
+| **Sprint Velocity** | Historical velocity metrics with trend analysis across multiple sprints |
+| **Deep Analysis** | Hierarchical issue analysis with anomaly detection (points mismatch, stale items, unassigned work) |
+| **Board & Sprint Management** | List boards, manage sprints, move issues between sprints with state validation |
+| **Token Optimization** | Intelligent output compression that adapts to result size |
+
+### Available Tools
+
+| Tool | Purpose |
+|------|---------|
+| `get_issue` | Retrieve complete issue details by key |
+| `search_jql` | Execute JQL queries with pagination support |
+| `get_issue_comments` | Access issue discussion threads |
+| `jira_scrum_guidance` | SCRUM best-practice analysis with severity-ranked recommendations |
+| `get_sprint_velocity` | Team velocity metrics and sprint performance analysis |
+| `jira_deep_analysis` | Hierarchical analysis with metrics aggregation and anomaly detection |
+| `create_issue` | Create new issues with full field support (subtasks, story points, labels) |
+| `update_issue` | Update existing issues (summary, description, assignee, priority, etc.) |
+| `transition_issue` | Transition issues between workflow states |
+| `get_boards` | List Jira boards with project/type/name filters |
+| `get_board_sprints` | List sprints for a board (future/active/closed) |
+| `get_sprint` | Get sprint details with issues and metrics |
+| `move_issues_to_sprint` | Move issues to a sprint (with dry run support) |
+| `update_sprint` | Update sprint name, dates, goal, or state |
+| `jira_configure_fields` | Configure custom field mappings for Story Points and Sprint |
+| `jira_discover_fields` | Discover available custom fields from your Jira instance |
+| `jira_dev_reload` | Development only: triggers graceful server restart to apply code changes |
+
+---
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js >= 20.0.0
+- pnpm >= 9.0.0
+- Jira Cloud instance with API access
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/ximplicity/mcp-jira-devflow.git
+cd mcp-jira-devflow
+
+# Install dependencies
+pnpm install
+
+# Build all packages
+pnpm build
+
+# Run tests
+pnpm test
+```
+
+### Run Locally
+
+Once configured (see next section), run the MCP server directly from the command line:
+
+```bash
+# Using environment variables (export or .env)
+pnpm -C packages/mcp-jira start
+
+# Or inline for quick testing
+JIRA_BASE_URL=https://your-domain.atlassian.net \
+JIRA_USER_EMAIL=your-email@example.com \
+JIRA_API_TOKEN=your-api-token \
+pnpm -C packages/mcp-jira start
+```
+
+The server communicates via stdio using the MCP protocol. It outputs startup information to stderr and waits for MCP commands on stdin.
+
+---
+
+## Configuration
+
+### Required Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `JIRA_BASE_URL` | Your Jira instance URL (e.g., `https://company.atlassian.net`) | Yes |
+| `JIRA_USER_EMAIL` | Your Jira account email | Yes |
+| `JIRA_API_TOKEN` | Your Jira API token ([generate here](https://id.atlassian.com/manage-profile/security/api-tokens)) | Yes |
+
+```bash
+# Option: Create a .env file
+cp .env.example .env
+# Then edit .env with your credentials
+```
+
+### Custom Field Configuration
+
+Different Jira instances use different custom field IDs for Story Points and Sprint fields. You can configure these via environment variables or at runtime.
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `JIRA_FIELD_STORY_POINTS` | Custom field ID for Story Points | `customfield_10016` |
+| `JIRA_FIELD_SPRINT` | Custom field ID for Sprint | `customfield_10020` |
+
+**Runtime discovery**: If you don't know your field IDs, use `jira_discover_fields` to find them and `jira_configure_fields` to set them.
+
+### Claude Desktop Integration
+
+Add to `~/.claude/claude_desktop_config.json`:
+
+**Minimal config:**
+
+```json
+{
+  "mcpServers": {
+    "jira": {
+      "command": "node",
+      "args": ["/path/to/mcp-jira-devflow/packages/mcp-jira/dist/server.js"],
+      "env": {
+        "JIRA_BASE_URL": "https://your-company.atlassian.net",
+        "JIRA_USER_EMAIL": "your-email@company.com",
+        "JIRA_API_TOKEN": "your-api-token"
+      }
+    }
+  }
+}
+```
+
+**Full config (with custom fields):**
+
+```json
+{
+  "mcpServers": {
+    "jira": {
+      "command": "node",
+      "args": ["/path/to/mcp-jira-devflow/packages/mcp-jira/dist/server.js"],
+      "env": {
+        "JIRA_BASE_URL": "https://your-company.atlassian.net",
+        "JIRA_USER_EMAIL": "your-email@company.com",
+        "JIRA_API_TOKEN": "your-api-token",
+        "JIRA_FIELD_STORY_POINTS": "customfield_10016",
+        "JIRA_FIELD_SPRINT": "customfield_10020"
+      }
+    }
+  }
+}
+```
+
+---
+
+## Security and Permissions
+
+MCP Jira DevFlow follows the principle of least privilege. Understanding which operations modify data helps you configure appropriate access controls.
+
+### Read vs Write Operations
+
+| Operation Type | Tools | Risk Level |
+|---------------|-------|------------|
+| **Read-only** | `get_issue`, `search_jql`, `get_issue_comments`, `jira_scrum_guidance`, `get_sprint_velocity`, `jira_deep_analysis`, `get_boards`, `get_board_sprints`, `get_sprint`, `jira_discover_fields` | Low |
+| **Write** | `create_issue`, `update_issue`, `transition_issue`, `move_issues_to_sprint`, `update_sprint`, `jira_configure_fields` | Medium |
+
+### Recommendations
+
+1. **Use service accounts**: Create a dedicated Jira user for MCP integrations instead of using personal credentials. This provides audit trails and allows granular permission control.
+
+2. **Apply project restrictions**: Configure the service account with access only to projects that require AI automation. Jira Cloud allows project-level permission schemes.
+
+3. **Use dry-run mode when available**: Some write operations (`create_issue`, `update_issue`, `move_issues_to_sprint`, `update_sprint`) support `dryRun: true` to validate without executing. Note that `transition_issue` does not support dry-run.
+
+4. **Rotate API tokens**: Jira API tokens do not expire automatically. Establish a rotation policy (e.g., quarterly) and store tokens securely using environment variables or secret managers.
+
+5. **Monitor usage**: Review the Jira audit log periodically to track actions performed by the service account.
+
+---
+
+## Compatibility
+
+| Component | Supported | Notes |
+|-----------|-----------|-------|
+| **Jira Cloud** | Yes | Fully tested and production-ready |
+| **Jira Server / Data Center** | No | Uses Cloud-only REST API v3 endpoints |
+| **Node.js** | 20.0.0+ | Required for ES modules and native fetch |
+| **pnpm** | 9.0.0+ | Required for workspace management |
+| **MCP Protocol** | 1.0+ | Compatible with Claude Desktop and Claude Code |
+
+---
+
+## Roadmap
+
+MCP Jira DevFlow is evolving toward a unified platform for AI-assisted enterprise development:
+
+### Phase 1: Jira Mastery (Current)
+- [x] Read operations (issues, comments, search)
+- [x] SCRUM guidance and best-practice enforcement
+- [x] Sprint velocity and performance metrics
+- [x] Deep hierarchical analysis with anomaly detection
+- [x] Write operations (create, update, transition issues)
+- [x] Board and sprint management
+- [x] Custom field mapping and configuration
+
+### Phase 2: Git Integration (Upcoming)
+- [ ] Repository context awareness
+- [ ] Branch management aligned with Jira issues
+- [ ] Automated PR creation with issue linking
+- [ ] Commit message validation against issue requirements
+- [ ] Code review assistance with context from Jira specifications
+
+### Phase 3: Unified DevFlow (Future)
+- [ ] End-to-end sprint planning with AI recommendations
+- [ ] Automated documentation generation from issue hierarchies
+- [ ] Release notes compilation from completed work
+- [ ] Cross-project dependency analysis
+- [ ] Predictive analytics for sprint planning
+- [ ] CI/CD integration for deployment tracking
+
+---
+
+## Architecture
+
+```
+mcp-jira-devflow/
+├── packages/
+│   ├── mcp-jira/           # Jira integration server (Production)
+│   ├── mcp-devflow/        # Git and workflow automation (Development)
+│   └── shared/             # Common utilities and types
+├── features/               # Feature specifications
+├── skills/                 # Agent behavior definitions
+└── docs/                   # Technical documentation
+```
+
+### Design Principles
+
+- **Domain-Driven**: Clean separation between API, domain logic, and presentation
+- **Token-Aware**: All outputs optimized for AI context window efficiency
+- **Extensible**: Plugin architecture for custom integrations
+- **Secure**: Read-only by default, explicit permissions for write operations
+- **Observable**: Comprehensive logging and error handling
+
+### Feature Status
+
+| ID | Feature | Status | Description |
+|----|---------|--------|-------------|
+| F001 | Jira Read Operations | Stable | Issue retrieval, JQL search, comments |
+| F002 | SCRUM Guidance | Stable | Best-practice analysis and recommendations |
+| F004 | Sprint Velocity | Stable | Team performance metrics |
+| F005 | Deep Analysis | Stable | Hierarchical analysis with anomaly detection |
+| F006 | Jira Write Operations | Stable | Issue creation and updates |
+| F009 | Board & Sprint Management | Stable | Board listing, sprint operations, issue movement |
+| F007 | Git Integration | Planned | Repository and branch management |
+| F008 | PR Automation | Planned | Automated pull request workflows |
+
+### Development Mode
+
+For contributors and developers working on the MCP server, a hot-reload mode is available that watches for file changes and notifies connected clients.
+
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `JIRA_MCP_DEV` | Enable development mode with file watcher | `false` |
+| `JIRA_MCP_AUTO_RESTART` | Automatically restart server on file changes | `false` |
+| `JIRA_MCP_DEBOUNCE_MS` | Debounce delay for file change detection (ms) | `500` |
+
+**Development workflow:**
+
+1. Add `"JIRA_MCP_DEV": "true"` to your Claude Desktop config
+2. Run `pnpm build --watch` in `packages/mcp-jira`
+3. Use `jira_dev_reload` tool to trigger graceful restart after changes
 
 ---
 
