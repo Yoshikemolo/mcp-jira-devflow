@@ -12,6 +12,7 @@ import type {
   JiraPriority,
   JiraIssueType,
   JiraIssue,
+  JiraIssueCompact,
   JiraComment,
   JiraComponent,
   JiraSearchResult,
@@ -225,6 +226,23 @@ export function mapIssue(raw: RawIssue): JiraIssue {
     updated: fields.updated,
     labels: fields.labels ?? [],
     components: (fields.components ?? []).map(mapComponent),
+  };
+}
+
+/**
+ * Maps a raw issue to compact format with only essential fields.
+ * Used for large result sets to reduce token usage.
+ */
+export function mapIssueCompact(raw: RawIssue): JiraIssueCompact {
+  const fields = raw.fields;
+
+  return {
+    key: raw.key,
+    summary: fields.summary,
+    status: fields.status.name,
+    priority: fields.priority?.name,
+    assignee: fields.assignee?.displayName,
+    issueType: fields.issuetype.name,
   };
 }
 
