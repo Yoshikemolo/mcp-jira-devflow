@@ -16,6 +16,7 @@
 | [**Quick Start**](#quick-start) | Installation, configuration, Claude Desktop setup |
 | [**Security**](#security-and-permissions) | Read vs write operations, best practices |
 | [**Architecture**](#architecture) | Project structure, design principles, feature status |
+| [**Skills Architecture**](#skills-architecture) | Agent skills organization, progressive disclosure, token optimization |
 | [**Roadmap**](#roadmap) | Current phase, upcoming Git integration, future plans |
 | [**Contributing**](#contributing) | How to contribute to the project |
 
@@ -606,6 +607,127 @@ For contributors and developers working on the MCP server, a hot-reload mode is 
 1. Add `"JIRA_MCP_DEV": "true"` to your Claude Desktop config
 2. Run `pnpm build --watch` in `packages/mcp-jira`
 3. Use `jira_dev_reload` tool to trigger graceful restart after changes
+
+---
+
+## Skills Architecture
+
+MCP Jira DevFlow uses **agent skills** to define permitted operations and behavioral guidelines. Skills follow the [agentskills.io](https://agentskills.io/specification) specification for interoperability with AI agents.
+
+### What are Skills?
+
+Skills are structured instruction sets that tell AI agents:
+- **What operations are allowed** (e.g., read issues, create PRs)
+- **What operations are forbidden** (e.g., delete issues without approval)
+- **Constraints and best practices** (e.g., branch naming, commit conventions)
+- **Reference material** for complex tasks (e.g., JQL syntax, error handling)
+
+### Directory Structure
+
+```
+skills/
+├── jira-read/
+│   ├── SKILL.md              # Core instructions (~1600 tokens)
+│   ├── MANIFEST.yaml         # Resource index for smart agents
+│   └── references/
+│       ├── JQL-CHEATSHEET.md    # On-demand: JQL syntax guide
+│       └── ERROR-HANDLING.md    # On-demand: Error codes & retry strategies
+├── jira-write/
+│   ├── SKILL.md
+│   ├── MANIFEST.yaml
+│   └── references/
+│       ├── TRANSITIONS-GUIDE.md
+│       └── FIELD-REFERENCE.md
+├── git-operations/
+├── orchestration/
+├── pr-creation/
+└── test-execution/
+```
+
+### Progressive Disclosure
+
+Skills implement **three-level progressive disclosure** to optimize AI context window usage:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  LEVEL 1: METADATA (~120 tokens)                                │
+│  Loaded at startup for ALL skills                               │
+│  → name + description from YAML frontmatter                     │
+│  → Enables agent to discover relevant skills                    │
+├─────────────────────────────────────────────────────────────────┤
+│  LEVEL 2: INSTRUCTIONS (~1600 tokens)                           │
+│  Loaded when skill is ACTIVATED                                 │
+│  → Full SKILL.md body with operational guidelines               │
+│  → Enough to perform most tasks                                 │
+├─────────────────────────────────────────────────────────────────┤
+│  LEVEL 3: RESOURCES (on-demand, ~1500-2200 tokens each)         │
+│  Loaded only when EXPLICITLY NEEDED                             │
+│  → Detailed references in references/ directory                 │
+│  → Cheatsheets, error guides, templates                         │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Why this matters**: An agent managing 6 skills would use ~720 tokens for discovery (6 × 120). When activating one skill, it adds ~1600 tokens. Detailed references load only when needed—not upfront.
+
+### Token Estimation Methodology
+
+Each `MANIFEST.yaml` includes documented token estimates:
+
+```yaml
+# Token estimation rule: 1 token ≈ 0.75 words (or ~4 characters)
+# Formula: (word_count / 0.75) × content_multiplier
+
+# Content type multipliers:
+#   - Prose/paragraphs: 1.0x (baseline)
+#   - Code blocks: 1.2x (syntax overhead)
+#   - Tables: 1.3x (markdown formatting)
+#   - Cheatsheets: 1.4x (mixed content, symbols)
+```
+
+| Level | Range | Default | Rationale |
+|-------|-------|---------|-----------|
+| Metadata | 80-150 | 120 | name (~10) + description (~100) + YAML overhead |
+| Instructions | 1000-2500 | 1600 | Operational skill with examples, not comprehensive |
+| Resources | 1400-2200 | varies | Based on content type and density |
+
+### MANIFEST.yaml Structure
+
+The manifest enables smart agents to implement lazy loading:
+
+```yaml
+skill: jira-read
+version: "1.0"
+specification: agentskills.io/v1
+
+progressive_disclosure:
+  metadata:
+    estimated_tokens: 120
+  instructions:
+    estimated_tokens: 1600
+    file: SKILL.md
+  resources:
+    - path: references/JQL-CHEATSHEET.md
+      estimated_tokens: 2000
+      load_when:
+        - User asks about JQL syntax
+        - Query returns syntax errors
+      keywords: [jql, query, search, filter]
+
+token_summary:
+  metadata_only: 120
+  with_instructions: 1720
+  with_all_resources: 5120
+```
+
+### Compatibility
+
+| Agent Type | Behavior |
+|------------|----------|
+| **With progressive disclosure** | Reads MANIFEST.yaml → loads resources on-demand |
+| **Without progressive disclosure** | Reads only SKILL.md → works correctly, misses optimization |
+| **Basic agent** | Reads SKILL.md → fully functional |
+
+Skills are designed to work with any agent. Progressive disclosure is an optimization, not a requirement.
 
 ---
 
