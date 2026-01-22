@@ -1,20 +1,40 @@
 # Skill Manifest - Progressive Disclosure Index
-# Token estimation rule: 1 token ≈ 0.75 words in English
+# Token estimation: 1 token ≈ 0.75 words (or ~4 characters)
+# Content multipliers: prose 1.0x, code 1.2x, tables 1.3x, cheatsheets 1.4x
 
 skill: jira-write
 version: "1.0"
 specification: agentskills.io/v1
 
 progressive_disclosure:
+  # ---------------------------------------------------------------------------
+  # LEVEL 1: METADATA (~120 tokens)
+  # Range: 80-150 | We use: 120
+  # Rationale: name (~10) + description (~100) + YAML overhead (~10)
+  # ---------------------------------------------------------------------------
   metadata:
     estimated_tokens: 120
     fields: [name, description]
 
+  # ---------------------------------------------------------------------------
+  # LEVEL 2: INSTRUCTIONS (~1600 tokens)
+  # Range: 1000-2500 | We use: 1600
+  # Rationale: Operational skill with examples, detailed content in references
+  # ---------------------------------------------------------------------------
   instructions:
     estimated_tokens: 1600
     file: SKILL.md
 
   resources:
+    # -------------------------------------------------------------------------
+    # TRANSITIONS-GUIDE.md (~1800 tokens)
+    # Range: 1500-2200 | We use: 1800
+    # Rationale:
+    #   - Workflow diagrams (ASCII art = high token cost)
+    #   - Multiple code examples for transitions
+    #   - Tables with transition names (~1.3x)
+    #   - ~140 lines of mixed content
+    # -------------------------------------------------------------------------
     - path: references/TRANSITIONS-GUIDE.md
       purpose: Complete guide to transitioning issues between statuses
       estimated_tokens: 1800
@@ -24,6 +44,14 @@ progressive_disclosure:
         - User asks about workflow states
       keywords: [transition, status, workflow, done, progress, blocked]
 
+    # -------------------------------------------------------------------------
+    # FIELD-REFERENCE.md (~1600 tokens)
+    # Range: 1200-1800 | We use: 1600
+    # Rationale:
+    #   - Heavy on tables (field types, formats)
+    #   - JSON examples for each field type
+    #   - ~130 lines, mostly structured data
+    # -------------------------------------------------------------------------
     - path: references/FIELD-REFERENCE.md
       purpose: Field types, formats, custom fields, and validation rules
       estimated_tokens: 1600
