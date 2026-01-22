@@ -21,7 +21,7 @@
 | [**Security**](#security-and-permissions) | Read vs write operations, best practices |
 | [**Architecture**](#architecture) | Project structure, design principles, feature status |
 | [**Skills Architecture**](#skills-architecture) | Agent skills organization, progressive disclosure, token optimization |
-| [**Roadmap**](#roadmap) | Current phase, upcoming Git integration, future plans |
+| [**Roadmap**](#roadmap) | Completed phases and project evolution |
 | [**Contributing**](#contributing) | How to contribute to the project |
 
 ---
@@ -757,7 +757,7 @@ MCP Jira DevFlow follows the principle of least privilege. Understanding which o
 
 ## Roadmap
 
-MCP Jira DevFlow is evolving toward a unified platform for AI-assisted enterprise development:
+MCP Jira DevFlow is a unified platform for AI-assisted enterprise development:
 
 ### Phase 1: Jira Mastery (Complete)
 - [x] Read operations (issues, comments, search, changelog) → [F001](./features/F001-jira-read/)
@@ -800,7 +800,7 @@ mcp-jira-devflow/
 │   │   │   ├── git/                 # Git-Jira integration
 │   │   │   └── config/              # Configuration schemas
 │   │   └── package.json
-│   ├── mcp-devflow/                 # Git and workflow automation (Development)
+│   ├── mcp-devflow/                 # Git and workflow automation (Stable)
 │   └── shared/                      # Common utilities and types
 │       └── src/
 │           ├── errors/              # Custom error classes
