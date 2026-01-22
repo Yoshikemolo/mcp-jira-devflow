@@ -1,7 +1,8 @@
 {
-  "name": "@mcp-jira-devflow/shared",
+  "name": "@ximplicity/mcp-jira-shared",
   "version": "0.1.0",
   "description": "Shared utilities for MCP Jira DevFlow",
+  "author": "Jorge Rodriguez Rengel <info@ximplicity.es> (https://ximplicity.es)",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -42,5 +43,24 @@
     "rimraf": "^6.0.0",
     "vitest": "^2.0.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "jira",
+    "devflow",
+    "utilities",
+    "shared"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yoshikemolo/mcp-jira-devflow.git",
+    "directory": "packages/shared"
+  },
+  "bugs": {
+    "url": "https://github.com/Yoshikemolo/mcp-jira-devflow/issues"
+  },
+  "homepage": "https://github.com/Yoshikemolo/mcp-jira-devflow#readme",
+  "files": [
+    "dist"
+  ]
 }

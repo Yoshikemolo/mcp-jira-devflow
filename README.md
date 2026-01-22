@@ -579,6 +579,18 @@ Example output includes:
 
 ### Installation
 
+#### Option 1: Install from npm (Recommended)
+
+```bash
+# Install globally
+npm install -g @ximplicity/mcp-jira
+
+# Or use directly with npx
+npx @ximplicity/mcp-jira
+```
+
+#### Option 2: Clone from source
+
 ```bash
 # Clone the repository
 git clone https://github.com/ximplicity/mcp-jira-devflow.git
@@ -644,7 +656,25 @@ Different Jira instances use different custom field IDs for Story Points and Spr
 
 Add to `~/.claude/claude_desktop_config.json`:
 
-**Minimal config:**
+**Using npm package (recommended):**
+
+```json
+{
+  "mcpServers": {
+    "jira": {
+      "command": "npx",
+      "args": ["-y", "@ximplicity/mcp-jira"],
+      "env": {
+        "JIRA_BASE_URL": "https://your-company.atlassian.net",
+        "JIRA_USER_EMAIL": "your-email@company.com",
+        "JIRA_API_TOKEN": "your-api-token"
+      }
+    }
+  }
+}
+```
+
+**Using local installation:**
 
 ```json
 {
@@ -668,8 +698,8 @@ Add to `~/.claude/claude_desktop_config.json`:
 {
   "mcpServers": {
     "jira": {
-      "command": "node",
-      "args": ["/path/to/mcp-jira-devflow/packages/mcp-jira/dist/server.js"],
+      "command": "npx",
+      "args": ["-y", "@ximplicity/mcp-jira"],
       "env": {
         "JIRA_BASE_URL": "https://your-company.atlassian.net",
         "JIRA_USER_EMAIL": "your-email@company.com",

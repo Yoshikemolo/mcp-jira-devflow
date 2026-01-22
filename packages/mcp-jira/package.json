@@ -1,10 +1,14 @@
 {
-  "name": "@mcp-jira-devflow/mcp-jira",
+  "name": "@ximplicity/mcp-jira",
   "version": "0.1.0",
-  "description": "MCP server for Jira integration",
+  "description": "MCP server for Jira integration with AI-powered DevFlow automation",
+  "author": "Jorge Rodriguez Rengel <info@ximplicity.es> (https://ximplicity.es)",
   "type": "module",
   "main": "./dist/server.js",
   "types": "./dist/server.d.ts",
+  "bin": {
+    "mcp-jira": "./dist/server.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/server.d.ts",
@@ -31,5 +35,27 @@
     "typescript": "^5.7.0",
     "vitest": "^2.0.0"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "keywords": [
+    "mcp",
+    "jira",
+    "devflow",
+    "automation",
+    "ai",
+    "claude",
+    "model-context-protocol"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Yoshikemolo/mcp-jira-devflow.git",
+    "directory": "packages/mcp-jira"
+  },
+  "bugs": {
+    "url": "https://github.com/Yoshikemolo/mcp-jira-devflow/issues"
+  },
+  "homepage": "https://github.com/Yoshikemolo/mcp-jira-devflow#readme",
+  "files": [
+    "dist",
+    "README.md"
+  ]
 }
