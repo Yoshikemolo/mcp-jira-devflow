@@ -2,7 +2,7 @@
 
 **Intelligent Jira Integration for AI-Powered Development Workflows**
 
-The MCP Jira server provides comprehensive read access to your Jira Cloud instance through the Model Context Protocol. Designed for enterprise SCRUM teams, it delivers intelligent analysis capabilities that transform raw Jira data into actionable insights for AI agents.
+The MCP Jira server provides comprehensive read access to your Jira Cloud instance through the Model Context Protocol. Designed for enterprise Scrum teams, it delivers intelligent analysis capabilities that transform raw Jira data into actionable insights for AI agents.
 
 ---
 
@@ -11,8 +11,8 @@ The MCP Jira server provides comprehensive read access to your Jira Cloud instan
 ### Comprehensive Jira Access
 Full read access to issues, comments, and search through JQL. Supports pagination, custom fields, and all standard Jira Cloud issue types.
 
-### SCRUM Best Practice Analysis
-Automated evaluation of issues against SCRUM standards. Receive severity-ranked recommendations, health scores, and suggested workflow actions tailored to each issue type.
+### Scrum Best Practice Analysis
+Automated evaluation of issues against Scrum standards. Receive severity-ranked recommendations, health scores, and suggested workflow actions tailored to each issue type.
 
 ### Sprint Performance Metrics
 Historical velocity tracking across multiple sprints. Analyze completion rates, committed vs delivered points, and identify trends for better sprint planning.
@@ -139,7 +139,7 @@ Retrieves discussion threads with author information and timestamps.
 ### Analysis Tools
 
 #### `jira_scrum_guidance`
-Evaluates issues against SCRUM best practices with type-specific checks.
+Evaluates issues against Scrum best practices with type-specific checks.
 
 ```json
 {
@@ -315,7 +315,7 @@ src/
 │   ├── get-issue.ts       # Issue retrieval
 │   ├── search-jql.ts      # JQL search
 │   ├── get-comments.ts    # Comment retrieval
-│   ├── scrum-guidance.ts  # SCRUM analysis
+│   ├── scrum-guidance.ts  # Scrum analysis
 │   ├── get-sprint-velocity.ts  # Velocity metrics
 │   └── deep-analysis.ts   # Hierarchical analysis
 ├── analysis/              # Deep analysis module
@@ -323,7 +323,7 @@ src/
 │   ├── hierarchy-builder.ts # Tree construction
 │   ├── metrics-calculator.ts # Metrics and anomalies
 │   └── summarizer.ts      # Token-aware formatting
-├── guidance/              # SCRUM guidance module
+├── guidance/              # Scrum guidance module
 │   ├── analyzer.ts        # Issue analysis
 │   ├── rules.ts           # Best-practice rules
 │   └── prompts.ts         # Follow-up generation

@@ -1,162 +1,338 @@
 # MCP Jira DevFlow
 
-**AI-Powered Development Workflow Automation for Enterprise SCRUM Teams**
-
-MCP Jira DevFlow is a comprehensive suite of Model Context Protocol (MCP) servers that bridge AI agents with Jira and Git, enabling intelligent automation across the entire software development lifecycle. From sprint planning to deployment, empower your team with AI-assisted workflows that understand your SCRUM process.
-
-Built by practitioners for SCRUM teams that want to automate Jira workflows with AI.
+> **Not just Jira CRUD. This is Scrum-aware AI tooling.**
 
 ---
 
-## Why MCP Jira DevFlow?
+## Table of Contents
 
-Modern enterprise development demands more than basic integrations. Teams need intelligent tools that:
-
-- **Understand Context**: AI agents that grasp issue hierarchies, dependencies, and team velocity
-- **Enforce Best Practices**: Automated SCRUM compliance checks and actionable recommendations
-- **Scale Efficiently**: Token-optimized responses that handle large backlogs without overwhelming context windows
-- **Integrate Seamlessly**: Native MCP support for Claude, with extensible architecture for other AI platforms
-
-Whether you are managing a single project or orchestrating multiple enterprise applications, MCP Jira DevFlow provides the foundation for AI-augmented agile development.
+| Section | What You'll Find |
+|---------|------------------|
+| [**Why MCP Jira DevFlow**](#why-mcp-jira-devflow) | Differentiation, comparison table, why developers should care |
+| [**The Core Idea**](#the-core-idea) | The philosophy: decisions and summaries, not raw payloads |
+| [**What This is NOT**](#what-this-is-not) | Setting clear expectations |
+| [**Try in 90 Seconds**](#try-in-90-seconds) | Run the interactive test tool with your Jira |
+| [**Prompt Examples**](#prompt-examples-with-real-output) | Real screenshots from live Jira projects |
+| [**Quick Start**](#quick-start) | Installation, configuration, Claude Desktop setup |
+| [**Security**](#security-and-permissions) | Read vs write operations, best practices |
+| [**Architecture**](#architecture) | Project structure, design principles, feature status |
+| [**Roadmap**](#roadmap) | Current phase, upcoming Git integration, future plans |
+| [**Contributing**](#contributing) | How to contribute to the project |
 
 ---
 
-## Prompt Examples
+## Why MCP Jira DevFlow
 
-Stop context-switching between Jira and your IDE. These prompts demonstrate how MCP Jira DevFlow transforms natural language into actionable Jira intelligence.
+There are 20+ MCP Jira connectors. Most do the same thing: create, read, update issues. **This one understands your agile process.**
 
-### Backlog Analysis
+MCP Jira DevFlow is a **semantic AI layer for Agile workflows**. It doesn't just fetch data from Jira—it analyzes sprint health, detects estimation anomalies, enforces Scrum best practices, and shapes outputs for AI context efficiency.
 
-**Problem**: You need to understand the state of your backlog before sprint planning, but navigating Jira dashboards takes too long.
+**MCP Jira DevFlow returns decisions and summaries, not raw Jira payloads.**
+
+### What Makes This Different
+
+| Capability | Generic MCP Jira | MCP Jira DevFlow |
+|------------|------------------|------------------|
+| **Scrum Semantics** | Read/write issues | Health scores, workflow recommendations, compliance checks |
+| **Hierarchy Analysis** | Flat issue lists | Epic → Story → Subtask traversal with rollup metrics |
+| **Sprint Intelligence** | Basic queries | Velocity trends, burndown insights, capacity analysis |
+| **Token Optimization** | Raw JSON dumps | Adaptive output compression for large backlogs |
+| **Anomaly Detection** | None | Points mismatch, stale items, unestimated work alerts |
+
+### Why Developers Should Care
+
+- **Fewer Jira clicks** — Query your backlog from the terminal or IDE
+- **Less ceremony overhead** — Get sprint status in seconds, not meetings
+- **Faster standups** — "What's blocking the team?" answered instantly
+- **Better ticket quality** — AI-assisted acceptance criteria and estimation checks
+- **Less planning friction** — Velocity trends and capacity analysis on demand
+
+---
+
+## The Core Idea
+
+**AI should understand Agile semantics, not just issue fields.**
+
+When you ask "Is my sprint healthy?", you don't want raw JSON. You want:
+- Completion percentage and remaining capacity
+- Items at risk based on time-in-status patterns
+- Recommendations grounded in Scrum best practices
+
+MCP Jira DevFlow provides that intelligence layer.
+
+---
+
+## What This is NOT
+
+To set clear expectations, MCP Jira DevFlow is:
+
+- **Not a replacement for the Jira UI**: This tool augments your workflow by enabling AI-powered queries and automation. You will still use Jira's interface for visual boards, complex configurations, and administrative tasks.
+
+- **Not an autonomous agent**: MCP Jira DevFlow responds to explicit prompts and commands. It does not independently make decisions, modify issues without instruction, or take actions on its own initiative.
+
+- **Not full planning automation**: While it provides velocity metrics, Scrum guidance, and analysis, sprint planning still requires human judgment. The tool informs decisions; it does not make them for you.
+
+---
+
+## Try in 90 Seconds
+
+> Uses Jira API token. Stored locally in `.jira-test-config.json` (gitignored).
+> **Recommended**: use a service account with read-only permissions.
+
+Want to see Scrum guidance in action before configuring Claude? Run the interactive test tool:
+
+```bash
+# Clone and build
+git clone https://github.com/ximplicity/mcp-jira-devflow.git
+cd mcp-jira-devflow
+pnpm install && pnpm build
+
+# Run the interactive test
+node packages/mcp-jira/test-guidance.mjs
+```
+
+![Example of quick MCP Jira DevFlow test in 90 seconds](/examples/output-example-00.png)
+
+The tool will:
+1. Prompt for your Jira credentials (or use environment variables)
+2. Optionally show your assigned issues
+3. Analyze any issue for Scrum best practices
+4. Display health score, completeness score, and actionable recommendations
+
+**Example output:**
 
 ```
-Analyze the backlog for project WEBAPP. Show me all unestimated stories,
-any epics with inconsistent point totals, and items that have been
-in progress for more than 5 days.
+  Issue:        IPV2-960 (Epic)
+  Status:       indeterminate
+  Health:       92/100
+  Completeness: 89/100
+
+── Recommendations ─────────────────────────────────────────────
+
+  [MEDIUM] Consider Adding Business Value Statement
+  Epics should clearly articulate business value to guide prioritization.
+  → Add a business value or goal statement explaining why this epic matters.
 ```
 
-```
-Give me a health check of epic WEBAPP-150. Are there any orphaned subtasks,
-missing estimates, or blocked items I should know about?
-```
+> **Note**: Credentials may be stored locally for convenience in `.jira-test-config.json` (excluded from version control). This option is intended for local testing only. For production deployments or shared environments, always use environment variables (`env`) as documented.
 
-### Sprint Management
+---
 
-**Problem**: Sprint ceremonies consume valuable time that could be spent coding. You need instant visibility into sprint health.
+## Prompt Examples with Real Output
 
-```
-What is the current status of our active sprint? Show me completion percentage,
-remaining story points, and highlight any items at risk.
-```
+The screenshots below are **real MCP responses** generated by Claude Code using MCP Jira DevFlow on a live Jira project. No mockups—this is what you actually get.
 
-```
-Compare the velocity of the last 5 sprints for project MOBILE.
-Are we improving or declining? What is our average capacity?
-```
-
-```
-Move tickets WEBAPP-201, WEBAPP-202, and WEBAPP-203 to the next sprint.
-They were not completed and need to carry over.
-```
-
-### Issue Creation and Updates
-
-**Problem**: Creating well-structured Jira tickets interrupts your development flow. You need to capture requirements without leaving your context.
-
-```
-Create a bug ticket in project API: Users are receiving 500 errors when
-uploading files larger than 10MB. Priority is high. Assign it to me.
-```
-
-```
-Break down story WEBAPP-180 into subtasks for: database schema changes,
-API endpoint implementation, frontend integration, and unit tests.
-Estimate each subtask.
-```
-
-```
-Update WEBAPP-195: change the status to In Review, add label "needs-qa",
-and set story points to 5.
-```
+---
 
 ### Team Coordination
 
 **Problem**: Standup meetings lack focus because team members spend time searching for their assigned work instead of discussing blockers.
 
+**Prompt**:
 ```
 Show me all in-progress items assigned to the frontend team.
 Include how long each has been in progress and any blockers.
 ```
 
-```
-What tickets are assigned to maria@company.com in the current sprint?
-Are any of them blocked or overdue?
-```
+**Output (Real Claude Session)**:
 
-### SCRUM Compliance
+![Team coordination output showing in-progress items with duration and blockers](/examples/output-example-01.png)
 
-**Problem**: Maintaining SCRUM best practices requires constant vigilance. Poorly defined tickets slip through and cause downstream issues.
+> **Figure: Team Workload Analysis**
+> - In-progress items grouped by assignee
+> - Duration tracked (e.g., "58 days" flags stale work)
+> - Blockers surfaced with decision context
+> - Actionable recommendations included
 
-```
-Review ticket WEBAPP-210 against SCRUM best practices.
-Does it have clear acceptance criteria, proper estimation, and correct categorization?
-```
+**What this demonstrates**:
+- Scrum semantic analysis (not just raw issue data)
+- Time-in-status tracking for stale item detection
+- Blocker context extraction from comments
+- Token-optimized tabular output
 
-```
-Find all stories in the current sprint that are missing acceptance criteria
-or have no story points assigned.
-```
-
-### Custom Field Discovery
-
-**Problem**: Your Jira instance uses non-standard field IDs, and story points are not being captured correctly.
-
-```
-Discover all custom fields in my Jira instance that might be used for story points.
-Show me numeric fields with names containing "point" or "estimate".
-```
-
-```
-Configure the story points field to use customfield_10045
-and the sprint field to use customfield_10022.
-```
+---
 
 ### Issue History and Auditing
 
 **Problem**: You need to track when estimates were changed, who modified issues, or audit the history of critical tickets.
 
+**Prompt**:
 ```
-Show me the changelog for WEBAPP-150. I want to see when the story points
-were changed and by whom.
-```
-
-```
-Get the history of status changes for issue API-300.
+Get the history of status changes for issue IPV2-960.
 When did it move to In Progress and how long was it there?
 ```
 
-```
-Who changed the assignee on MOBILE-88 and when? I need to understand
-the handoff history.
-```
+**Output (Real Claude Session)**:
+
+![Status change history with timeline visualization](/examples/output-example-02.png)
+
+> **Figure: Issue Status Timeline**
+> - Complete status transition history
+> - Duration in each status calculated
+> - Visual timeline representation
+> - Blocked periods identified
+
+**What this demonstrates**:
+- Changelog API integration
+- Temporal analysis (time spent per status)
+- Pattern detection (repeated status changes)
+- Audit trail for compliance
+
+---
 
 ### Advanced JQL Queries
 
 **Problem**: Complex queries require JQL expertise. You need powerful searches without memorizing syntax.
 
+**Prompt**:
 ```
 Find all high-priority bugs created in the last 2 weeks that are still open
-and not assigned to anyone.
+and not assigned to anyone in the project IPV1?
 ```
 
+**Output (Real Claude Session)**:
+
+![JQL query results with filtering and analysis](/examples/output-example-03.png)
+
+> **Figure: Unassigned High-Priority Bugs**
+> - Natural language → JQL translation
+> - Results with priority and age context
+> - Triage recommendations included
+
+**What this demonstrates**:
+- JQL generation from natural language
+- Multi-criteria filtering (priority, date, assignee)
+- Actionable output format
+
+---
+
+### Self-Management Queries
+
+**Prompt**:
 ```
-Show me all stories completed in the last sprint that had their estimates
-changed after sprint start.
+Search issues assigned to me in the next sprint, without acceptance criteria.
 ```
 
+**Output (Real Claude Session)**:
+
+![Personal sprint items missing acceptance criteria](/examples/output-example-04.png)
+
+> **Figure: Sprint Readiness Check**
+> - Issues missing acceptance criteria flagged
+> - Sprint context included
+> - Direct links to issues for quick fixes
+
+**What this demonstrates**:
+- Personal workload analysis
+- Scrum compliance checking (acceptance criteria)
+- Proactive quality gates
+
+---
+
+### Deep Health Analysis
+
+**Problem**: You need comprehensive insight into epic health—child story status, estimation consistency, blockers, and Scrum compliance—without manually clicking through dozens of issues.
+
+**Prompt**:
 ```
-Search for tickets in project PLATFORM that mention "performance"
-in the description and have more than 3 comments.
+Provide me a deep health analysis of issue IPV2-960.
+```
+
+**Output (Real Claude Session)**:
+
+![Deep analysis showing health scorecard, metrics, and hierarchy](/examples/output-example-06.png)
+
+> **Figure: Epic Health Scorecard**
+> - Health score: 92/100
+> - Completion: 94% (17/18 stories done)
+> - Story points: 96 total, 96 completed
+> - Status distribution visualization
+
+**Recursive Child Analysis**:
+
+![Recursive analysis of child stories with rollup metrics](/examples/output-example-07.png)
+
+> **Figure: Hierarchy Traversal**
+> - Epic → Story breakdown with points
+> - Status per child issue
+> - Anomaly detection (unestimated items, stale work)
+
+**Scrum Recommendations**:
+
+![Scrum guidance with actionable recommendations](/examples/output-example-08.png)
+
+> **Figure: Actionable Recommendations**
+> - Severity-ranked issues (Critical/Medium/Low)
+> - Specific actions: "Transition epic to DONE"
+> - Follow-up prompts suggested
+
+**What this demonstrates**:
+- Multi-API orchestration (JQL + Changelog + Issue Details)
+- Hierarchical traversal with metric aggregation
+- Anomaly detection (points mismatch, stale items)
+- Scrum best-practice recommendations
+- Token-optimized output for large hierarchies
+
+---
+
+### Intelligent Issue Updates
+
+**Problem**: Writing quality acceptance criteria takes time. You want AI to draft them based on project context and patterns.
+
+**Prompt**:
+```
+Complete acceptance criteria of IPV2-56
+```
+
+**Output (Real Claude Session)**:
+
+![AI-generated acceptance criteria based on project context](/examples/output-example-05.png)
+
+> **Figure: AI-Assisted Issue Refinement**
+> - Acceptance criteria generated from project patterns
+> - Technical context inferred from related issues
+> - Properly formatted for Jira (headers, bullets)
+
+**What this demonstrates**:
+- Context-aware content generation
+- Project pattern recognition
+- Write operations with dry-run support
+- Quality improvement automation
+
+---
+
+### Additional Prompt Examples
+
+These prompts work out of the box—no screenshots needed to understand their value:
+
+**Backlog Analysis**:
+```
+Analyze the backlog for project WEBAPP. Show me all unestimated stories,
+any epics with inconsistent point totals, and items in progress for 5+ days.
+```
+
+**Sprint Management**:
+```
+Compare the velocity of the last 5 sprints for project MOBILE.
+Are we improving or declining? What is our average capacity?
+```
+
+**Issue Creation**:
+```
+Create a bug ticket in project API: Users are receiving 500 errors when
+uploading files larger than 10MB. Priority is high. Assign it to me.
+```
+
+**Scrum Compliance**:
+```
+Find all stories in the current sprint that are missing acceptance criteria
+or have no story points assigned.
+```
+
+**Custom Field Discovery**:
+```
+Discover all custom fields in my Jira instance that might be used for story points.
+Show me numeric fields with names containing "point" or "estimate".
 ```
 
 ---
@@ -168,7 +344,7 @@ in the description and have more than 3 comments.
 | Feature | Description |
 |---------|-------------|
 | **Issue Management** | Retrieve, search, and analyze Jira issues with full JQL support |
-| **SCRUM Guidance** | Automated best-practice analysis with health scores and actionable recommendations |
+| **Scrum Guidance** | Automated best-practice analysis with health scores and actionable recommendations |
 | **Sprint Velocity** | Historical velocity metrics with trend analysis across multiple sprints |
 | **Deep Analysis** | Hierarchical issue analysis with anomaly detection (points mismatch, stale items, unassigned work) |
 | **Board & Sprint Management** | List boards, manage sprints, move issues between sprints with state validation |
@@ -182,7 +358,7 @@ in the description and have more than 3 comments.
 | `search_jql` | Execute JQL queries with pagination support |
 | `get_issue_comments` | Access issue discussion threads |
 | `get_issue_changelog` | Retrieve issue change history (field changes, status transitions, estimate updates) |
-| `jira_scrum_guidance` | SCRUM best-practice analysis with severity-ranked recommendations |
+| `jira_scrum_guidance` | Scrum best-practice analysis with severity-ranked recommendations |
 | `get_sprint_velocity` | Team velocity metrics and sprint performance analysis |
 | `jira_deep_analysis` | Hierarchical analysis with metrics aggregation and anomaly detection |
 | `create_issue` | Create new issues with full field support (subtasks, story points, labels) |
@@ -357,7 +533,7 @@ MCP Jira DevFlow is evolving toward a unified platform for AI-assisted enterpris
 
 ### Phase 1: Jira Mastery (Current)
 - [x] Read operations (issues, comments, search, changelog)
-- [x] SCRUM guidance and best-practice enforcement
+- [x] Scrum guidance and best-practice enforcement
 - [x] Sprint velocity and performance metrics
 - [x] Deep hierarchical analysis with anomaly detection
 - [x] Write operations (create, update, transition issues)
@@ -407,7 +583,7 @@ mcp-jira-devflow/
 | ID | Feature | Status | Description |
 |----|---------|--------|-------------|
 | F001 | Jira Read Operations | Stable | Issue retrieval, JQL search, comments, changelog |
-| F002 | SCRUM Guidance | Stable | Best-practice analysis and recommendations |
+| F002 | Scrum Guidance | Stable | Best-practice analysis and recommendations |
 | F004 | Sprint Velocity | Stable | Team performance metrics |
 | F005 | Deep Analysis | Stable | Hierarchical analysis with anomaly detection |
 | F006 | Jira Write Operations | Stable | Issue creation and updates |
