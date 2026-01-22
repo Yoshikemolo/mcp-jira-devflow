@@ -1,6 +1,17 @@
+---
+name: orchestration
+description: Coordinate multi-step workflows across skills with execution plans, state tracking, and rollback support. Use when tasks require multiple coordinated operations.
+license: MIT
+compatibility: Requires access to other skills being orchestrated
+metadata:
+  author: ximplicity
+  version: "1.0"
+  category: workflow
+---
+
 # Orchestration Skill
 
-Skill for coordinating multi-step workflows.
+Coordinate multi-step workflows with planning, execution, and rollback.
 
 ## Allowed Operations
 
@@ -23,13 +34,13 @@ Skill for coordinating multi-step workflows.
 ```yaml
 plan:
   id: "plan-001"
-  name: "Implement F001"
+  name: "Implement Feature"
   steps:
     - id: "step-1"
       skill: "git-operations"
       action: "create-branch"
       params:
-        name: "feature/F001-jira-read"
+        name: "feature/PROJ-123-new-feature"
       rollback:
         action: "delete-branch"
 
@@ -37,7 +48,7 @@ plan:
       skill: "jira-write"
       action: "transition"
       params:
-        issue: "PROJECT-123"
+        issue: "PROJ-123"
         status: "In Progress"
       dependsOn: ["step-1"]
 ```
@@ -80,6 +91,17 @@ plan:
 
 ## Error Handling
 
-- Single step failure: Pause and report
-- Multiple failures: Abort and rollback
-- Rollback failure: Alert and manual intervention
+| Scenario | Action |
+|----------|--------|
+| Single step failure | Pause and report |
+| Multiple failures | Abort and rollback |
+| Rollback failure | Alert for manual intervention |
+
+## Example Usage
+
+```
+Create a plan to implement feature PROJ-123
+Execute the approved plan step by step
+Resume plan execution from step 3
+Rollback the last failed plan
+```

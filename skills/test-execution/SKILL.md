@@ -1,6 +1,17 @@
+---
+name: test-execution
+description: Run unit and integration tests, generate coverage reports, and view results. Use to validate code changes before committing or merging.
+license: MIT
+compatibility: Requires Node.js test runner (vitest, jest) or project-specific test framework
+metadata:
+  author: ximplicity
+  version: "1.0"
+  category: testing
+---
+
 # Test Execution Skill
 
-Skill for running and managing tests.
+Run and manage automated tests.
 
 ## Allowed Operations
 
@@ -31,7 +42,7 @@ Skill for running and managing tests.
 ### Unit Tests
 
 - Fast, isolated
-- No I/O
+- No I/O operations
 - Mock all dependencies
 - Run on every commit
 
@@ -71,3 +82,12 @@ Skill for running and managing tests.
 - Exit code 1 for any failure
 - Write results to standard locations
 - Support JUnit XML format
+
+## Example Usage
+
+```
+Run all unit tests
+Run tests matching "auth"
+Run tests with coverage report
+Show results of last test run
+```
