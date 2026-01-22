@@ -37,53 +37,44 @@ These require explicit user approval:
 
 ## Constraints
 
-- All destructive operations require confirmation flag
+- No direct commits to `main` or `master`
 - Branch names must follow convention
 - Commit messages must follow conventional commits
-- No direct commits to `main` or `master`
 
-## Branch Naming Convention
+## Quick Branch Reference
 
 ```
 <type>/<issue-id>-<short-description>
 
-Examples:
-- feature/PROJ-123-add-login
-- fix/PROJ-456-null-pointer
-- chore/update-dependencies
+feature/PROJ-123-add-login
+fix/PROJ-456-null-pointer
+chore/update-dependencies
 ```
 
-Valid types: `feature`, `fix`, `chore`, `docs`, `refactor`
+Types: `feature`, `fix`, `chore`, `docs`, `refactor`
 
-## Commit Message Format
+For complete naming rules, see [BRANCH-NAMING.md](references/BRANCH-NAMING.md).
+
+## Quick Commit Reference
 
 ```
 <type>(<scope>): <description>
 
-[optional body]
-
-[optional footer]
+feat(auth): add login endpoint
+fix(api): handle null response
+docs(readme): update setup guide
 ```
 
 Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
-## Dry-Run Mode
-
-When `dryRun: true`:
-
-- Show what commands would execute
-- Validate branch names
-- Check remote connectivity
-- Make NO changes
+For complete format, see [COMMIT-CONVENTIONS.md](references/COMMIT-CONVENTIONS.md).
 
 ## Safety Checks
 
 Before any operation:
-
-1. Verify working directory is clean (or stash)
+1. Verify working directory is clean
 2. Verify on correct branch
-3. Verify remote is reachable
-4. Check for uncommitted changes
+3. Check for uncommitted changes
 
 ## Example Usage
 

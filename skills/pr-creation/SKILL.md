@@ -30,7 +30,6 @@ These require explicit approval:
 - Merge PRs
 - Close PRs without merging
 - Delete branches after merge
-- Modify PR settings
 - Force-approve PRs
 
 ## Constraints
@@ -40,7 +39,7 @@ These require explicit approval:
 - PRs should have at least one reviewer
 - Use draft PRs for work-in-progress
 
-## PR Template
+## Quick PR Template
 
 ```markdown
 ## Summary
@@ -60,19 +59,15 @@ Closes: PROJ-123
 
 - [ ] Unit tests pass
 - [ ] Integration tests pass
-- [ ] Manual testing completed
-
-## Checklist
-
-- [ ] Code follows project style
-- [ ] Documentation updated
-- [ ] No secrets committed
 ```
+
+For complete templates, see [PR-TEMPLATES.md](references/PR-TEMPLATES.md).
+
+For review guidelines, see [REVIEW-CHECKLIST.md](references/REVIEW-CHECKLIST.md).
 
 ## Dry-Run Mode
 
 When `dryRun: true`:
-
 - Validate all PR fields
 - Check branch exists
 - Verify reviewers exist
