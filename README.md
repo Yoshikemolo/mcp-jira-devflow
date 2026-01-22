@@ -719,6 +719,47 @@ token_summary:
   with_all_resources: 5120
 ```
 
+### How to Validate Skills
+
+Run the validation script to check all skills comply with the agentskills.io specification:
+
+```bash
+node scripts/validate-skills.mjs
+```
+
+**Expected output:**
+
+```
+Skills Validator
+Checking agentskills.io compliance...
+
+📁 jira-read
+   ✓ SKILL.md (name: jira-read)
+   License: MIT
+   ✓ MANIFEST.yaml (v1.0)
+   ✓ references/JQL-CHEATSHEET.md (~2000 tokens)
+   ✓ references/ERROR-HANDLING.md (~1400 tokens)
+   Tokens: 120 → 1720 → 5120
+
+...
+
+═══════════════════════════════════════════
+Summary
+═══════════════════════════════════════════
+
+  Skills: 6/6 valid
+
+  Token Budget (all resources loaded):
+  31,720 tokens total
+```
+
+The validator checks:
+- SKILL.md has valid YAML frontmatter with required fields (`name`, `description`)
+- `name` matches the parent directory name
+- MANIFEST.yaml exists and has valid structure
+- All referenced files in `references/` exist on disk
+- Token budget summary across all skills
+
 ### Compatibility
 
 | Agent Type | Behavior |
