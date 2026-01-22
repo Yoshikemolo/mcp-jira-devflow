@@ -32,7 +32,11 @@ export class AppError extends Error {
     this.statusCode = statusCode;
     this.isOperational = isOperational;
 
-    Error.captureStackTrace(this, this.constructor);
+    // V8-specific stack trace capture (Node.js)
+    const ErrorWithCapture = Error as typeof Error & {
+      captureStackTrace?: (target: object, constructor?: Function) => void;
+    };
+    ErrorWithCapture.captureStackTrace?.(this, this.constructor);
   }
 }
 
