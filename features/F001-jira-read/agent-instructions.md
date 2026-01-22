@@ -4,6 +4,32 @@
 
 This document provides step-by-step instructions for agents implementing F001.
 
+---
+
+## Required Skills
+
+| Skill | Path | Purpose |
+|-------|------|---------|
+| `jira-read` | `/skills/jira-read/SKILL.md` | Read operations constraints |
+
+## Tools Touched
+
+| Tool | Operation | Description |
+|------|-----------|-------------|
+| `get_issue` | Read | Retrieve single issue |
+| `search_jql` | Read | JQL-based search |
+| `get_issue_comments` | Read | Retrieve issue comments |
+| `get_issue_changelog` | Read | Retrieve issue history |
+
+## Expected Outputs
+
+- Structured JSON responses matching tool contracts
+- Error responses with actionable messages
+- No credentials in logs or responses
+- Token-optimized output for large result sets
+
+---
+
 ## Prerequisites
 
 Before starting:
@@ -11,8 +37,9 @@ Before starting:
 1. Read and understand:
    - `/agents.md` (global rules)
    - `/packages/mcp-jira/agents.md` (package rules)
-   - `/skills/jira-read.skill.md` (skill constraints)
+   - `/skills/jira-read/SKILL.md` (skill constraints)
    - This feature's `scope.md` and `architecture.md`
+   - This feature's `tool-contracts.md` (input/output specs)
 
 2. Verify:
    - Working on branch `feature/F001-jira-read`

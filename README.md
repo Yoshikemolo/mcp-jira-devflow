@@ -759,23 +759,23 @@ MCP Jira DevFlow follows the principle of least privilege. Understanding which o
 
 MCP Jira DevFlow is evolving toward a unified platform for AI-assisted enterprise development:
 
-### Phase 1: Jira Mastery (Current)
-- [x] Read operations (issues, comments, search, changelog)
-- [x] Scrum guidance and best-practice enforcement
-- [x] Sprint velocity and performance metrics
-- [x] Deep hierarchical analysis with anomaly detection
-- [x] Write operations (create, update, transition issues)
-- [x] Board and sprint management
+### Phase 1: Jira Mastery (Complete)
+- [x] Read operations (issues, comments, search, changelog) → [F001](./features/F001-jira-read/)
+- [x] Scrum guidance and best-practice enforcement → [F002](./features/F002-scrum-guidance/)
+- [x] Sprint velocity and performance metrics → [F004](./features/F004-sprint-velocity/)
+- [x] Deep hierarchical analysis with anomaly detection → [F005](./features/F005-deep-analysis/)
+- [x] Write operations (create, update, transition issues) → [F006](./features/F006-jira-write/)
+- [x] Board and sprint management → [F009](./features/F009-board-sprint-management/)
 - [x] Custom field mapping and configuration
 
 ### Phase 2: Git Integration (Complete)
-- [x] Repository context awareness (link repos to projects)
-- [x] Branch name generation aligned with Jira issues
-- [x] PR context generation with issue linking
-- [x] Commit message validation against conventions
-- [x] Jira context for code review (PR templates with acceptance criteria)
+- [x] Repository context awareness (link repos to projects) → [F007](./features/F007-git-integration/)
+- [x] Branch name generation aligned with Jira issues → [F007](./features/F007-git-integration/)
+- [x] PR context generation with issue linking → [F008](./features/F008-pr-context/)
+- [x] Commit message validation against conventions → [F007](./features/F007-git-integration/)
+- [x] Jira context for code review (PR templates with acceptance criteria) → [F008](./features/F008-pr-context/)
 
-### Phase 3: Unified DevFlow (Current)
+### Phase 3: Unified DevFlow (Complete)
 - [x] End-to-end sprint planning with AI recommendations
 - [x] Automated documentation generation from issue hierarchies
 - [x] Release notes compilation from completed work
@@ -790,12 +790,41 @@ MCP Jira DevFlow is evolving toward a unified platform for AI-assisted enterpris
 ```
 mcp-jira-devflow/
 ├── packages/
-│   ├── mcp-jira/           # Jira integration server (Production)
-│   ├── mcp-devflow/        # Git and workflow automation (Development)
-│   └── shared/             # Common utilities and types
-├── features/               # Feature specifications
-├── skills/                 # Agent behavior definitions
-└── docs/                   # Technical documentation
+│   ├── mcp-jira/                    # Jira integration server (Production)
+│   │   ├── src/
+│   │   │   ├── server.ts            # MCP server entry point
+│   │   │   ├── tools/               # MCP tool implementations
+│   │   │   ├── domain/              # Jira client and types
+│   │   │   ├── guidance/            # Scrum analysis engine
+│   │   │   ├── analysis/            # Deep analysis, velocity, dependencies
+│   │   │   ├── git/                 # Git-Jira integration
+│   │   │   └── config/              # Configuration schemas
+│   │   └── package.json
+│   ├── mcp-devflow/                 # Git and workflow automation (Development)
+│   └── shared/                      # Common utilities and types
+│       └── src/
+│           ├── errors/              # Custom error classes
+│           ├── logging/             # Structured logging
+│           ├── validation/          # Schema validation
+│           └── types/               # Shared type definitions
+├── features/                        # Feature specifications
+│   ├── F001-jira-read/              # Read operations
+│   ├── F002-scrum-guidance/         # Scrum analysis
+│   ├── F004-sprint-velocity/        # Velocity metrics
+│   ├── F005-deep-analysis/          # Hierarchical analysis
+│   ├── F006-jira-write/             # Write operations
+│   ├── F007-git-integration/        # Git-Jira integration
+│   ├── F008-pr-context/             # PR generation
+│   └── F009-board-sprint-management/# Board & sprint ops
+├── skills/                          # Agent behavior definitions
+│   ├── jira-read/                   # Read operation constraints
+│   ├── jira-write/                  # Write operation constraints
+│   ├── git-jira-integration/        # Git workflow rules
+│   ├── pr-creation/                 # PR creation rules
+│   └── devflow-planning/            # Planning capabilities
+├── scripts/                         # Build and utility scripts
+├── agents.md                        # Global agent rules
+└── docs/                            # Technical documentation
 ```
 
 ### Design Principles
@@ -808,16 +837,16 @@ mcp-jira-devflow/
 
 ### Feature Status
 
-| ID | Feature | Status | Description |
-|----|---------|--------|-------------|
-| F001 | Jira Read Operations | Stable | Issue retrieval, JQL search, comments, changelog |
-| F002 | Scrum Guidance | Stable | Best-practice analysis and recommendations |
-| F004 | Sprint Velocity | Stable | Team performance metrics |
-| F005 | Deep Analysis | Stable | Hierarchical analysis with anomaly detection |
-| F006 | Jira Write Operations | Stable | Issue creation and updates |
-| F009 | Board & Sprint Management | Stable | Board listing, sprint operations, issue movement |
-| F007 | Git Integration | Stable | Repository linking, branch naming, commit validation |
-| F008 | PR Context | Stable | PR title/body generation from Jira specifications |
+| ID | Feature | Status | Description | Docs |
+|----|---------|--------|-------------|------|
+| F001 | Jira Read Operations | Stable | Issue retrieval, JQL search, comments, changelog | [View](./features/F001-jira-read/) |
+| F002 | Scrum Guidance | Stable | Best-practice analysis and recommendations | [View](./features/F002-scrum-guidance/) |
+| F004 | Sprint Velocity | Stable | Team performance metrics | [View](./features/F004-sprint-velocity/) |
+| F005 | Deep Analysis | Stable | Hierarchical analysis with anomaly detection | [View](./features/F005-deep-analysis/) |
+| F006 | Jira Write Operations | Stable | Issue creation and updates | [View](./features/F006-jira-write/) |
+| F007 | Git Integration | Stable | Repository linking, branch naming, commit validation | [View](./features/F007-git-integration/) |
+| F008 | PR Context | Stable | PR title/body generation from Jira specifications | [View](./features/F008-pr-context/) |
+| F009 | Board & Sprint Management | Stable | Board listing, sprint operations, issue movement | [View](./features/F009-board-sprint-management/) |
 
 ### Development Mode
 
