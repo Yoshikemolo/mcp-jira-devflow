@@ -1,5 +1,9 @@
 # MCP Jira DevFlow
 
+[![npm version](https://img.shields.io/npm/v/@ximplicity/mcp-jira.svg)](https://www.npmjs.com/package/@ximplicity/mcp-jira)
+[![npm downloads](https://img.shields.io/npm/dm/@ximplicity/mcp-jira.svg)](https://www.npmjs.com/package/@ximplicity/mcp-jira)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 > **Not just Jira CRUD. This is Scrum-aware AI tooling.**
 
 ---
