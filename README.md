@@ -430,6 +430,38 @@ to production in version 2.1.0 with status success.
 
 These examples demonstrate the new Git-Jira integration capabilities for branch naming, commit validation, and PR context generation:
 
+**Use local Git projects intospection and Jira API integration for DevFlow analysis**
+```
+The frontend code project is at "C:\WORK\REPO\arix\inspectionportal-v2\inspection-portal-app" and the backend is at  "C:\WORK\REPO\arix\inspection-portal-backend".
+Provide an status analysis of both projects connecting with IPV2 Jira project.
+```
+Garthering and Analysis phase:
+
+![MCP Jira DevFlow uses Git and Jira API integration to analize several Git Project](/examples/output-example-09.png)
+
+Analysis results:
+
+![MCP Jira DevFlow provides a comprehensive analysis based on real code project status](/examples/output-example-10.png)
+
+#### What Was Done
+
+  - Retrieved git status, branches, and recent commits from both frontend and backend repositories
+  - Queried Jira IPV2 project for active sprint, issues, velocity metrics, and sprint history
+  - Correlated branch names with Jira issue keys to verify alignment
+  - Analyzed sprint progress, completion rates, and work distribution across team members
+  - Identified in-progress work and remaining tasks for the current sprint
+
+#### Advantages of This Analysis
+
+  - Provides a unified view of code repositories and project management in a single report
+  - Detects misalignment between development branches and Jira tickets early
+  - Enables tracking of sprint health with quantitative metrics (velocity, completion rates)
+  - Identifies bottlenecks by showing which issues are in progress and who owns them
+  - Supports sprint planning decisions with historical velocity data
+  - Reduces context switching by consolidating information from multiple tools
+
+<br/>
+
 **Link a Repository to Your Project**:
 ```
 Link the GitHub repository https://github.com/company/webapp
