@@ -58,6 +58,13 @@ import { releaseNotesTool, executeReleaseNotes } from "./release-notes.js";
 import { deploymentLinkTool, executeDeploymentLink } from "./deployment-link.js";
 import { releaseStatusTool, executeReleaseStatus } from "./release-status.js";
 
+// Git Integration tools (Phase 2)
+import { gitLinkRepoTool, executeGitLinkRepo } from "./git-link-repo.js";
+import { gitGetReposTool, executeGitGetRepos } from "./git-get-repos.js";
+import { gitBranchNameTool, executeGitBranchName } from "./git-branch-name.js";
+import { gitValidateCommitTool, executeGitValidateCommit } from "./git-validate-commit.js";
+import { gitPRContextTool, executeGitPRContext } from "./git-pr-context.js";
+
 /**
  * Tool definition type.
  */
@@ -113,6 +120,12 @@ const jiraTools: ToolDefinition[] = [
   releaseNotesTool,
   deploymentLinkTool,
   releaseStatusTool,
+  // Git Integration tools (Phase 2)
+  gitLinkRepoTool,
+  gitGetReposTool,
+  gitBranchNameTool,
+  gitValidateCommitTool,
+  gitPRContextTool,
 ];
 
 /**
@@ -301,6 +314,22 @@ export function registerTools(server: Server): void {
       case "devflow_release_status":
         return executeReleaseStatus(client, args);
 
+      // Git Integration tools (Phase 2)
+      case "devflow_git_link_repo":
+        return executeGitLinkRepo(args);
+
+      case "devflow_git_get_repos":
+        return executeGitGetRepos(args);
+
+      case "devflow_git_branch_name":
+        return executeGitBranchName(client, args);
+
+      case "devflow_git_validate_commit":
+        return executeGitValidateCommit(args);
+
+      case "devflow_git_pr_context":
+        return executeGitPRContext(client, args);
+
       default:
         return {
           content: [
@@ -346,3 +375,9 @@ export { generateDocsTool, executeGenerateDocs } from "./generate-docs.js";
 export { releaseNotesTool, executeReleaseNotes } from "./release-notes.js";
 export { deploymentLinkTool, executeDeploymentLink } from "./deployment-link.js";
 export { releaseStatusTool, executeReleaseStatus } from "./release-status.js";
+// Git Integration tools (Phase 2)
+export { gitLinkRepoTool, executeGitLinkRepo } from "./git-link-repo.js";
+export { gitGetReposTool, executeGitGetRepos } from "./git-get-repos.js";
+export { gitBranchNameTool, executeGitBranchName } from "./git-branch-name.js";
+export { gitValidateCommitTool, executeGitValidateCommit } from "./git-validate-commit.js";
+export { gitPRContextTool, executeGitPRContext } from "./git-pr-context.js";

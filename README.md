@@ -426,6 +426,66 @@ to production in version 2.1.0 with status success.
 
 ---
 
+### Git-Jira Integration Examples
+
+These examples demonstrate the new Git-Jira integration capabilities for branch naming, commit validation, and PR context generation:
+
+**Link a Repository to Your Project**:
+```
+Link the GitHub repository https://github.com/company/webapp
+to project WEBAPP with default branch 'develop'
+```
+
+This uses `devflow_git_link_repo` to store the project-repository mapping for subsequent operations.
+
+**Generate Branch Name from Issue**:
+```
+Generate a branch name for issue WEBAPP-123
+```
+
+Example output:
+```json
+{
+  "branchName": "feature/webapp-123-add-user-authentication",
+  "alternatives": [
+    "feature/webapp-123-add-user",
+    "webapp-123-add-user-authentication"
+  ],
+  "gitCommands": {
+    "createBranch": "git checkout -b feature/webapp-123-add-user-authentication"
+  }
+}
+```
+
+**Validate Commit Message**:
+```
+Validate this commit message: "fix: resolve login timeout issue"
+Does it follow conventions for project WEBAPP?
+```
+
+This uses `devflow_git_validate_commit` to check:
+- Conventional commits format compliance
+- Issue key references
+- Subject line length and formatting
+- Provides suggestions for improvement
+
+**Generate PR Context from Issues**:
+```
+Generate PR context for issues WEBAPP-123, WEBAPP-124, and WEBAPP-125.
+Include acceptance criteria and testing checklist.
+```
+
+Example output includes:
+- Suggested PR title based on issues
+- Complete PR body template with:
+  - Summary and related issues
+  - Acceptance criteria from Jira
+  - Testing checklist based on issue types
+- Suggested labels (`feature`, `size/medium`)
+- Reviewers recommendation
+
+---
+
 ## Current Capabilities
 
 ### Jira Integration (Production Ready)
@@ -468,6 +528,11 @@ to production in version 2.1.0 with status success.
 | `devflow_release_notes` | Compile release notes from completed sprint work |
 | `devflow_deployment_link` | Link CI/CD deployments to Jira issues |
 | `devflow_release_status` | Track release progress across deployment environments |
+| `devflow_git_link_repo` | Link Git repository to Jira project |
+| `devflow_git_get_repos` | List linked repositories for projects |
+| `devflow_git_branch_name` | Generate branch name from Jira issue |
+| `devflow_git_validate_commit` | Validate commit message against conventions |
+| `devflow_git_pr_context` | Generate PR context from Jira issues |
 | `jira_dev_reload` | Development only: triggers graceful server restart to apply code changes |
 
 ---
@@ -637,12 +702,12 @@ MCP Jira DevFlow is evolving toward a unified platform for AI-assisted enterpris
 - [x] Board and sprint management
 - [x] Custom field mapping and configuration
 
-### Phase 2: Git Integration (Upcoming)
-- [ ] Repository context awareness
-- [ ] Branch management aligned with Jira issues
-- [ ] Automated PR creation with issue linking
-- [ ] Commit message validation against issue requirements
-- [ ] Code review assistance with context from Jira specifications
+### Phase 2: Git Integration (Complete)
+- [x] Repository context awareness (link repos to projects)
+- [x] Branch name generation aligned with Jira issues
+- [x] PR context generation with issue linking
+- [x] Commit message validation against conventions
+- [x] Jira context for code review (PR templates with acceptance criteria)
 
 ### Phase 3: Unified DevFlow (Current)
 - [x] End-to-end sprint planning with AI recommendations
@@ -685,8 +750,8 @@ mcp-jira-devflow/
 | F005 | Deep Analysis | Stable | Hierarchical analysis with anomaly detection |
 | F006 | Jira Write Operations | Stable | Issue creation and updates |
 | F009 | Board & Sprint Management | Stable | Board listing, sprint operations, issue movement |
-| F007 | Git Integration | Planned | Repository and branch management |
-| F008 | PR Automation | Planned | Automated pull request workflows |
+| F007 | Git Integration | Stable | Repository linking, branch naming, commit validation |
+| F008 | PR Context | Stable | PR title/body generation from Jira specifications |
 
 ### Development Mode
 
@@ -735,6 +800,13 @@ skills/
 │       ├── TRANSITIONS-GUIDE.md
 │       └── FIELD-REFERENCE.md
 ├── git-operations/
+├── git-jira-integration/      # NEW: Git-Jira workflow integration
+│   ├── SKILL.md
+│   ├── MANIFEST.yaml
+│   └── references/
+│       ├── BRANCH-CONVENTIONS.md
+│       ├── COMMIT-MESSAGE-FORMAT.md
+│       └── PR-TEMPLATES.md
 ├── orchestration/
 ├── pr-creation/
 └── test-execution/
