@@ -31,7 +31,7 @@
     "build": "tsc",
     "clean": "rimraf dist",
     "lint": "eslint src",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

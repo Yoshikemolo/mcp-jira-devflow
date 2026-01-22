@@ -48,6 +48,16 @@ import { updateSprintTool, executeUpdateSprint } from "./update-sprint.js";
 import { configureFieldsTool, executeConfigureFields } from "./configure-fields.js";
 import { discoverFieldsTool, executeDiscoverFields } from "./discover-fields.js";
 
+// DevFlow Phase 3 tools
+import { sprintPlanTool, executeSprintPlan } from "./sprint-plan.js";
+import { capacityForecastTool, executeCapacityForecast } from "./capacity-forecast.js";
+import { sprintPredictTool, executeSprintPredict } from "./sprint-predict.js";
+import { dependencyMapTool, executeDependencyMap } from "./dependency-map.js";
+import { generateDocsTool, executeGenerateDocs } from "./generate-docs.js";
+import { releaseNotesTool, executeReleaseNotes } from "./release-notes.js";
+import { deploymentLinkTool, executeDeploymentLink } from "./deployment-link.js";
+import { releaseStatusTool, executeReleaseStatus } from "./release-status.js";
+
 /**
  * Tool definition type.
  */
@@ -94,6 +104,15 @@ const jiraTools: ToolDefinition[] = [
   // Field configuration
   configureFieldsTool,
   discoverFieldsTool,
+  // DevFlow Phase 3 tools
+  sprintPlanTool,
+  capacityForecastTool,
+  sprintPredictTool,
+  dependencyMapTool,
+  generateDocsTool,
+  releaseNotesTool,
+  deploymentLinkTool,
+  releaseStatusTool,
 ];
 
 /**
@@ -257,6 +276,31 @@ export function registerTools(server: Server): void {
       case "jira_discover_fields":
         return executeDiscoverFields(client, args);
 
+      // DevFlow Phase 3 tools
+      case "devflow_sprint_plan":
+        return executeSprintPlan(client, args);
+
+      case "devflow_capacity_forecast":
+        return executeCapacityForecast(client, args);
+
+      case "devflow_sprint_predict":
+        return executeSprintPredict(client, args);
+
+      case "devflow_dependency_map":
+        return executeDependencyMap(client, args);
+
+      case "devflow_generate_docs":
+        return executeGenerateDocs(client, args);
+
+      case "devflow_release_notes":
+        return executeReleaseNotes(client, args);
+
+      case "devflow_deployment_link":
+        return executeDeploymentLink(client, args);
+
+      case "devflow_release_status":
+        return executeReleaseStatus(client, args);
+
       default:
         return {
           content: [
@@ -293,3 +337,12 @@ export { updateSprintTool, executeUpdateSprint } from "./update-sprint.js";
 // Field configuration
 export { configureFieldsTool, executeConfigureFields } from "./configure-fields.js";
 export { discoverFieldsTool, executeDiscoverFields } from "./discover-fields.js";
+// DevFlow Phase 3 tools
+export { sprintPlanTool, executeSprintPlan } from "./sprint-plan.js";
+export { capacityForecastTool, executeCapacityForecast } from "./capacity-forecast.js";
+export { sprintPredictTool, executeSprintPredict } from "./sprint-predict.js";
+export { dependencyMapTool, executeDependencyMap } from "./dependency-map.js";
+export { generateDocsTool, executeGenerateDocs } from "./generate-docs.js";
+export { releaseNotesTool, executeReleaseNotes } from "./release-notes.js";
+export { deploymentLinkTool, executeDeploymentLink } from "./deployment-link.js";
+export { releaseStatusTool, executeReleaseStatus } from "./release-status.js";

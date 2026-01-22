@@ -338,6 +338,94 @@ Show me numeric fields with names containing "point" or "estimate".
 
 ---
 
+### DevFlow Phase 3 Examples
+
+These examples demonstrate the new AI-powered planning and automation capabilities:
+
+**Sprint Planning with Velocity Analysis**:
+```
+Plan the next sprint for project WEBAPP. Analyze the last 5 sprints velocity,
+predict our capacity, and recommend how many story points we should commit to.
+```
+
+This will use `devflow_sprint_plan` to:
+- Analyze historical velocity trends (increasing, stable, decreasing, volatile)
+- Calculate weighted average velocity (recent sprints weighted higher)
+- Predict success probability based on planned load
+- Identify high-risk issues that may spill over
+
+**Capacity Forecasting**:
+```
+Forecast our team capacity for the next sprint in project MOBILE.
+Consider our historical velocity and provide recommendations.
+```
+
+**Sprint Success Prediction**:
+```
+What's the probability of completing all planned issues in sprint 42?
+Show me which issues have the highest spillover risk and why.
+```
+
+Example output includes:
+- Success probability percentage (e.g., 78%)
+- Risk factors (declining velocity, high-risk issues, overcommitment)
+- Per-issue spillover risk with contributing factors
+- Recommendations for improving sprint success
+
+**Cross-Project Dependency Analysis**:
+```
+Map the dependencies between projects FRONTEND and BACKEND.
+Show me blocking chains and identify any circular dependencies.
+```
+
+This will use `devflow_dependency_map` to visualize:
+- Dependency graph with blocking relationships
+- Longest blocking chains that may delay work
+- Circular dependencies that need resolution
+- Cascade risk analysis (which blockers impact the most work)
+
+**Documentation Generation**:
+```
+Generate a technical specification document from epic PROJ-100.
+Include all child stories and acceptance criteria.
+```
+
+**Release Notes Compilation**:
+```
+Compile release notes for sprint 41 in project WEBAPP.
+Group by feature type and format for external stakeholders.
+```
+
+Example output:
+```markdown
+# Release Notes - Sprint 41
+
+## New Features
+- WEBAPP-123: User profile customization
+- WEBAPP-125: Export to PDF functionality
+
+## Bug Fixes
+- WEBAPP-130: Fixed login timeout issue
+- WEBAPP-132: Resolved file upload error for large files
+
+## Improvements
+- WEBAPP-128: Performance optimization for dashboard loading
+```
+
+**Deployment Tracking**:
+```
+What's the release status for version 2.1.0?
+Which issues have been deployed to production vs staging?
+```
+
+**Link Deployment to Issues**:
+```
+Record that issues PROJ-100, PROJ-101, and PROJ-102 were deployed
+to production in version 2.1.0 with status success.
+```
+
+---
+
 ## Current Capabilities
 
 ### Jira Integration (Production Ready)
@@ -372,6 +460,14 @@ Show me numeric fields with names containing "point" or "estimate".
 | `update_sprint` | Update sprint name, dates, goal, or state |
 | `jira_configure_fields` | Configure custom field mappings for Story Points and Sprint |
 | `jira_discover_fields` | Discover available custom fields from your Jira instance |
+| `devflow_sprint_plan` | AI-powered sprint planning with velocity-based recommendations |
+| `devflow_capacity_forecast` | Team capacity forecasting for sprint planning |
+| `devflow_sprint_predict` | Predictive analytics for sprint success probability |
+| `devflow_dependency_map` | Cross-project dependency visualization and risk analysis |
+| `devflow_generate_docs` | Generate documentation from Jira issue hierarchies |
+| `devflow_release_notes` | Compile release notes from completed sprint work |
+| `devflow_deployment_link` | Link CI/CD deployments to Jira issues |
+| `devflow_release_status` | Track release progress across deployment environments |
 | `jira_dev_reload` | Development only: triggers graceful server restart to apply code changes |
 
 ---
@@ -548,13 +644,13 @@ MCP Jira DevFlow is evolving toward a unified platform for AI-assisted enterpris
 - [ ] Commit message validation against issue requirements
 - [ ] Code review assistance with context from Jira specifications
 
-### Phase 3: Unified DevFlow (Future)
-- [ ] End-to-end sprint planning with AI recommendations
-- [ ] Automated documentation generation from issue hierarchies
-- [ ] Release notes compilation from completed work
-- [ ] Cross-project dependency analysis
-- [ ] Predictive analytics for sprint planning
-- [ ] CI/CD integration for deployment tracking
+### Phase 3: Unified DevFlow (Current)
+- [x] End-to-end sprint planning with AI recommendations
+- [x] Automated documentation generation from issue hierarchies
+- [x] Release notes compilation from completed work
+- [x] Cross-project dependency analysis
+- [x] Predictive analytics for sprint planning
+- [x] CI/CD integration for deployment tracking
 
 ---
 
