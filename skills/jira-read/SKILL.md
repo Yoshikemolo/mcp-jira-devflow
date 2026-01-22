@@ -30,36 +30,39 @@ Read-only operations for Jira data retrieval and analysis.
 - Transitioning issues
 - Creating issues
 - Deleting anything
-- Bulk write operations
 
 ## Constraints
 
-- Maximum 50 issues per query (pagination required for more)
-- No recursive or nested API calls without explicit need
-- All requests must include proper authentication headers
-- Rate limiting must be respected (see Jira API limits)
+- Maximum 50 issues per query (use pagination for more)
+- Rate limiting must be respected
+- All requests require proper authentication
 
 ## Input Requirements
 
-- Issue keys must match pattern: `[A-Z]+-\d+`
-- JQL queries must be validated before execution
-- Project keys must be uppercase alphanumeric
+- Issue keys: `[A-Z]+-\d+` pattern (e.g., PROJ-123)
+- Project keys: uppercase alphanumeric
+- JQL queries: validate before execution
 
-## Output Requirements
+## Quick JQL Reference
 
-- All responses must be typed
-- Sensitive fields must be redacted in logs
-- Empty results must return empty arrays, not null
-- Large results should use token-optimized output modes
+```jql
+# Common patterns
+assignee = currentUser() AND status != Done
+project = PROJ AND sprint IN openSprints()
+created >= -7d AND priority = High
+```
+
+For detailed JQL syntax, operators, and examples, see [JQL-CHEATSHEET.md](references/JQL-CHEATSHEET.md).
 
 ## Error Handling
 
 | Status | Action |
 |--------|--------|
-| 404 | Return NotFoundError with issue key |
-| 401/403 | Return AuthenticationError (no details) |
-| 429 | Implement backoff, then retry |
-| 5xx | Return ExternalServiceError with sanitized message |
+| 404 | Issue not found - verify key |
+| 401/403 | Auth error - check credentials |
+| 429 | Rate limited - backoff and retry |
+
+For complete error codes and retry strategies, see [ERROR-HANDLING.md](references/ERROR-HANDLING.md).
 
 ## Example Usage
 
@@ -67,4 +70,5 @@ Read-only operations for Jira data retrieval and analysis.
 Get issue PROJ-123 with full details
 Search for open bugs in project WEBAPP
 Show sprint velocity for the last 5 sprints
+Find issues assigned to me in current sprint
 ```

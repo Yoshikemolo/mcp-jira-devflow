@@ -1,0 +1,63 @@
+# Skill Manifest - Progressive Disclosure Index
+# This file describes available resources for agents that support lazy loading.
+# Agents without progressive disclosure support can safely ignore this file.
+
+skill: jira-read
+version: "1.0"
+specification: agentskills.io/v1
+
+# Progressive Disclosure Levels
+progressive_disclosure:
+  # Level 1: Metadata (~100 tokens)
+  # Loaded at startup for all skills
+  # Source: SKILL.md frontmatter (name + description)
+  metadata:
+    estimated_tokens: 50
+    fields: [name, description]
+
+  # Level 2: Instructions (<5000 tokens recommended)
+  # Loaded when skill is activated
+  # Source: SKILL.md body
+  instructions:
+    estimated_tokens: 800
+    file: SKILL.md
+
+  # Level 3: Resources (loaded on-demand)
+  # Only load when explicitly needed during execution
+  resources:
+    - path: references/JQL-CHEATSHEET.md
+      purpose: Detailed JQL syntax, operators, and query patterns
+      estimated_tokens: 1200
+      load_when:
+        - User asks about JQL syntax
+        - User needs help writing queries
+        - Query returns syntax errors
+      keywords: [jql, query, search, filter, syntax]
+
+    - path: references/ERROR-HANDLING.md
+      purpose: Complete error codes, retry strategies, and troubleshooting
+      estimated_tokens: 900
+      load_when:
+        - API returns an error
+        - User asks about error handling
+        - Debugging connection issues
+      keywords: [error, 401, 403, 404, 429, retry, timeout]
+
+# Loading hints for consuming agents
+loading_strategy:
+  recommendation: |
+    1. Start with SKILL.md only (Level 2)
+    2. Load JQL-CHEATSHEET.md when user needs query help
+    3. Load ERROR-HANDLING.md when encountering or discussing errors
+    4. Never preload all resources - load on demand
+
+  fallback: |
+    If your agent does not support progressive disclosure,
+    SKILL.md contains all essential instructions to operate.
+    Reference files provide supplementary detail only.
+
+# Total token budget
+token_summary:
+  metadata_only: 50
+  with_instructions: 850
+  with_all_resources: 2950
