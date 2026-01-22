@@ -1,0 +1,49 @@
+# Skill Manifest - Progressive Disclosure Index
+# Token estimation rule: 1 token ≈ 0.75 words in English
+
+skill: orchestration
+version: "1.0"
+specification: agentskills.io/v1
+
+progressive_disclosure:
+  metadata:
+    estimated_tokens: 120
+    fields: [name, description]
+
+  instructions:
+    estimated_tokens: 1600
+    file: SKILL.md
+
+  resources:
+    - path: references/PLAN-EXAMPLES.md
+      purpose: Complete execution plan examples for common workflows
+      estimated_tokens: 2200
+      load_when:
+        - Creating a new execution plan
+        - User asks for plan examples
+        - Designing multi-step workflows
+      keywords: [plan, example, workflow, feature, sprint, parallel]
+
+    - path: references/ROLLBACK-STRATEGIES.md
+      purpose: Rollback patterns, state tracking, and error recovery
+      estimated_tokens: 1800
+      load_when:
+        - Defining rollback actions
+        - Execution failure occurs
+        - User asks about error recovery
+      keywords: [rollback, revert, undo, failure, recovery, state]
+
+loading_strategy:
+  recommendation: |
+    1. Start with SKILL.md for orchestration basics
+    2. Load PLAN-EXAMPLES.md when creating new plans
+    3. Load ROLLBACK-STRATEGIES.md when handling failures
+
+  fallback: |
+    SKILL.md contains plan structure and execution phases.
+    Reference files provide detailed examples and patterns.
+
+token_summary:
+  metadata_only: 120
+  with_instructions: 1720
+  with_all_resources: 5720

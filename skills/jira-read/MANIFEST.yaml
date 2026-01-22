@@ -6,20 +6,22 @@ skill: jira-read
 version: "1.0"
 specification: agentskills.io/v1
 
-# Progressive Disclosure Levels
+# Token estimation rule: 1 token ≈ 0.75 words in English
+# Cheatsheets/examples tokenize worse than prose due to formatting
+
 progressive_disclosure:
-  # Level 1: Metadata (~100 tokens)
+  # Level 1: Metadata (~120 tokens)
   # Loaded at startup for all skills
   # Source: SKILL.md frontmatter (name + description)
   metadata:
-    estimated_tokens: 50
+    estimated_tokens: 120
     fields: [name, description]
 
-  # Level 2: Instructions (<5000 tokens recommended)
+  # Level 2: Instructions (~1600 tokens recommended)
   # Loaded when skill is activated
   # Source: SKILL.md body
   instructions:
-    estimated_tokens: 800
+    estimated_tokens: 1600
     file: SKILL.md
 
   # Level 3: Resources (loaded on-demand)
@@ -27,7 +29,7 @@ progressive_disclosure:
   resources:
     - path: references/JQL-CHEATSHEET.md
       purpose: Detailed JQL syntax, operators, and query patterns
-      estimated_tokens: 1200
+      estimated_tokens: 2000
       load_when:
         - User asks about JQL syntax
         - User needs help writing queries
@@ -36,7 +38,7 @@ progressive_disclosure:
 
     - path: references/ERROR-HANDLING.md
       purpose: Complete error codes, retry strategies, and troubleshooting
-      estimated_tokens: 900
+      estimated_tokens: 1400
       load_when:
         - API returns an error
         - User asks about error handling
@@ -58,6 +60,6 @@ loading_strategy:
 
 # Total token budget
 token_summary:
-  metadata_only: 50
-  with_instructions: 850
-  with_all_resources: 2950
+  metadata_only: 120
+  with_instructions: 1720
+  with_all_resources: 5120

@@ -39,19 +39,31 @@ Run and manage automated tests.
 
 ## Test Categories
 
-### Unit Tests
+| Type | Speed | Dependencies | When to Run |
+|------|-------|--------------|-------------|
+| Unit | Fast | Mocked | Every commit |
+| Integration | Medium | Test fixtures | Before merge |
+| E2E | Slow | Full stack | Before release |
 
-- Fast, isolated
-- No I/O operations
-- Mock all dependencies
-- Run on every commit
+## Quick Commands
 
-### Integration Tests
+```bash
+# Run all tests
+npm test
 
-- Test component interactions
-- Use test fixtures
-- May use test database
-- Run before merge
+# Run with coverage
+npm run test:coverage
+
+# Run specific file
+npm test -- path/to/test.ts
+
+# Run by pattern
+npm test -- --grep "auth"
+```
+
+For detailed test patterns, see [TEST-PATTERNS.md](references/TEST-PATTERNS.md).
+
+For coverage configuration, see [COVERAGE-GUIDE.md](references/COVERAGE-GUIDE.md).
 
 ## Output Format
 
@@ -63,8 +75,7 @@ Run and manage automated tests.
   "duration": 1234,
   "coverage": {
     "lines": 85.5,
-    "branches": 80.2,
-    "functions": 90.0
+    "branches": 80.2
   }
 }
 ```
@@ -75,13 +86,6 @@ Run and manage automated tests.
 - Include stack traces
 - Show relevant code context
 - Suggest potential fixes if obvious
-
-## CI Integration
-
-- Exit code 0 for all pass
-- Exit code 1 for any failure
-- Write results to standard locations
-- Support JUnit XML format
 
 ## Example Usage
 

@@ -1,0 +1,49 @@
+# Skill Manifest - Progressive Disclosure Index
+# Token estimation rule: 1 token ≈ 0.75 words in English
+
+skill: test-execution
+version: "1.0"
+specification: agentskills.io/v1
+
+progressive_disclosure:
+  metadata:
+    estimated_tokens: 120
+    fields: [name, description]
+
+  instructions:
+    estimated_tokens: 1600
+    file: SKILL.md
+
+  resources:
+    - path: references/TEST-PATTERNS.md
+      purpose: Testing patterns, assertions, and test organization
+      estimated_tokens: 2000
+      load_when:
+        - Writing new tests
+        - User asks about test patterns
+        - Need testing best practices
+      keywords: [pattern, mock, stub, spy, assertion, arrange, act, assert]
+
+    - path: references/COVERAGE-GUIDE.md
+      purpose: Coverage metrics, configuration, and CI integration
+      estimated_tokens: 1800
+      load_when:
+        - Running coverage reports
+        - Coverage below threshold
+        - Configuring coverage tools
+      keywords: [coverage, threshold, lines, branches, lcov, report]
+
+loading_strategy:
+  recommendation: |
+    1. Start with SKILL.md for basic test execution
+    2. Load TEST-PATTERNS.md when writing tests
+    3. Load COVERAGE-GUIDE.md when analyzing coverage
+
+  fallback: |
+    SKILL.md contains essential test execution instructions.
+    Reference files provide detailed patterns and coverage guidance.
+
+token_summary:
+  metadata_only: 120
+  with_instructions: 1720
+  with_all_resources: 5520

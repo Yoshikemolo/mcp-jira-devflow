@@ -1,0 +1,49 @@
+# Skill Manifest - Progressive Disclosure Index
+# Token estimation rule: 1 token ≈ 0.75 words in English
+
+skill: jira-write
+version: "1.0"
+specification: agentskills.io/v1
+
+progressive_disclosure:
+  metadata:
+    estimated_tokens: 120
+    fields: [name, description]
+
+  instructions:
+    estimated_tokens: 1600
+    file: SKILL.md
+
+  resources:
+    - path: references/TRANSITIONS-GUIDE.md
+      purpose: Complete guide to transitioning issues between statuses
+      estimated_tokens: 1800
+      load_when:
+        - User wants to change issue status
+        - Transition fails or is unavailable
+        - User asks about workflow states
+      keywords: [transition, status, workflow, done, progress, blocked]
+
+    - path: references/FIELD-REFERENCE.md
+      purpose: Field types, formats, custom fields, and validation rules
+      estimated_tokens: 1600
+      load_when:
+        - User asks about field formats
+        - Field validation error occurs
+        - Working with custom fields
+      keywords: [field, custom, priority, assignee, labels, description]
+
+loading_strategy:
+  recommendation: |
+    1. Start with SKILL.md for basic operations
+    2. Load TRANSITIONS-GUIDE.md when changing status
+    3. Load FIELD-REFERENCE.md when field errors occur
+
+  fallback: |
+    SKILL.md contains essential write operation instructions.
+    Reference files provide detailed format specifications.
+
+token_summary:
+  metadata_only: 120
+  with_instructions: 1720
+  with_all_resources: 5120

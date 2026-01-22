@@ -1,0 +1,49 @@
+# Skill Manifest - Progressive Disclosure Index
+# Token estimation rule: 1 token ≈ 0.75 words in English
+
+skill: pr-creation
+version: "1.0"
+specification: agentskills.io/v1
+
+progressive_disclosure:
+  metadata:
+    estimated_tokens: 120
+    fields: [name, description]
+
+  instructions:
+    estimated_tokens: 1600
+    file: SKILL.md
+
+  resources:
+    - path: references/PR-TEMPLATES.md
+      purpose: Ready-to-use templates for different PR types
+      estimated_tokens: 2000
+      load_when:
+        - Creating a new pull request
+        - User asks for PR template
+        - Need format for specific PR type
+      keywords: [template, feature, bugfix, hotfix, refactor, documentation]
+
+    - path: references/REVIEW-CHECKLIST.md
+      purpose: Checklists for PR authors and reviewers
+      estimated_tokens: 1500
+      load_when:
+        - Preparing PR for review
+        - Reviewing someone's PR
+        - User asks about review process
+      keywords: [review, checklist, approve, feedback, quality]
+
+loading_strategy:
+  recommendation: |
+    1. Start with SKILL.md for basic PR operations
+    2. Load PR-TEMPLATES.md when creating a PR
+    3. Load REVIEW-CHECKLIST.md during review phase
+
+  fallback: |
+    SKILL.md contains essential PR creation instructions.
+    Reference files provide comprehensive templates and checklists.
+
+token_summary:
+  metadata_only: 120
+  with_instructions: 1720
+  with_all_resources: 5220

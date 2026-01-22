@@ -33,35 +33,60 @@ Write operations for creating and modifying Jira data.
 
 ## Constraints
 
-- All write operations MUST support dry-run mode
+- All write operations support dry-run mode
 - Each operation must be atomic
-- Rollback strategy must be documented
 - Maximum 10 operations per batch
-
-## Input Requirements
-
-- All inputs must be validated against schemas
-- Issue types must exist in target project
-- Transitions must be valid for current status
-- Comments must not exceed 32KB
 
 ## Dry-Run Mode
 
+**Always recommend dry-run first for important changes:**
+
+```json
+{
+  "issueKey": "PROJ-123",
+  "summary": "New title",
+  "dryRun": true
+}
+```
+
 When `dryRun: true`:
+1. Validates all inputs
+2. Checks permissions
+3. Returns what WOULD happen
+4. Makes NO changes
 
-1. Validate all inputs
-2. Check permissions
-3. Verify target exists
-4. Return what WOULD happen
-5. Make NO changes
+## Quick Reference
 
-Always recommend dry-run first for destructive operations.
+### Create Issue
+```json
+{
+  "projectKey": "PROJ",
+  "summary": "Issue title",
+  "issueTypeName": "Bug",
+  "priority": "High"
+}
+```
 
-## Audit Requirements
+### Update Issue
+```json
+{
+  "issueKey": "PROJ-123",
+  "summary": "Updated title",
+  "labels": ["urgent"]
+}
+```
 
-- Log all write operations (redacted)
-- Include request ID for traceability
-- Record before/after states where applicable
+### Transition Issue
+```json
+{
+  "issueKey": "PROJ-123",
+  "transitionName": "Done"
+}
+```
+
+For detailed transition workflows, see [TRANSITIONS-GUIDE.md](references/TRANSITIONS-GUIDE.md).
+
+For complete field formats and custom fields, see [FIELD-REFERENCE.md](references/FIELD-REFERENCE.md).
 
 ## Error Handling
 
@@ -69,8 +94,7 @@ Always recommend dry-run first for destructive operations.
 |----------|--------|
 | Validation failure | Return all errors at once |
 | Permission denied | Clear message, no retry |
-| Conflict | Return current state for resolution |
-| Network error | Retry with backoff |
+| Conflict | Return current state |
 
 ## Example Usage
 

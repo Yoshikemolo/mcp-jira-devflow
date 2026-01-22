@@ -29,7 +29,30 @@ Coordinate multi-step workflows with planning, execution, and rollback.
 - Parallel execution without explicit flag
 - Modify plan during execution
 
-## Plan Structure
+## Execution Phases
+
+### 1. Plan Phase
+- Output all steps
+- Identify tools and risks
+- NO side effects
+- Requires approval
+
+### 2. Validation Phase
+- Validate all inputs
+- Check permissions
+- Dry-run each step
+
+### 3. Execution Phase
+- Execute step-by-step
+- Abort on error
+- Track state for rollback
+
+### 4. Rollback Phase (if needed)
+- Execute in reverse order
+- Log all actions
+- Report final state
+
+## Quick Plan Structure
 
 ```yaml
 plan:
@@ -40,7 +63,7 @@ plan:
       skill: "git-operations"
       action: "create-branch"
       params:
-        name: "feature/PROJ-123-new-feature"
+        name: "feature/PROJ-123"
       rollback:
         action: "delete-branch"
 
@@ -53,41 +76,9 @@ plan:
       dependsOn: ["step-1"]
 ```
 
-## Execution Phases
+For complete plan examples, see [PLAN-EXAMPLES.md](references/PLAN-EXAMPLES.md).
 
-### 1. Plan Phase
-
-- Output all steps
-- Identify tools needed
-- Identify risks
-- NO side effects
-- Requires approval to proceed
-
-### 2. Validation Phase
-
-- Validate all inputs
-- Check all permissions
-- Verify all targets exist
-- Dry-run each step
-
-### 3. Execution Phase
-
-- Execute step-by-step
-- Abort on error (unless configured)
-- Log every action
-- Track state for rollback
-
-### 4. Rollback Phase (if needed)
-
-- Execute rollback in reverse order
-- Log all rollback actions
-- Report final state
-
-## State Management
-
-- Persist plan state between executions
-- Allow resume from last successful step
-- Clear state on successful completion
+For rollback patterns, see [ROLLBACK-STRATEGIES.md](references/ROLLBACK-STRATEGIES.md).
 
 ## Error Handling
 

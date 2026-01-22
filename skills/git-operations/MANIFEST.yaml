@@ -1,0 +1,49 @@
+# Skill Manifest - Progressive Disclosure Index
+# Token estimation rule: 1 token ≈ 0.75 words in English
+
+skill: git-operations
+version: "1.0"
+specification: agentskills.io/v1
+
+progressive_disclosure:
+  metadata:
+    estimated_tokens: 120
+    fields: [name, description]
+
+  instructions:
+    estimated_tokens: 1600
+    file: SKILL.md
+
+  resources:
+    - path: references/BRANCH-NAMING.md
+      purpose: Branch naming conventions, patterns, and validation rules
+      estimated_tokens: 1500
+      load_when:
+        - Creating a new branch
+        - Branch name validation fails
+        - User asks about naming conventions
+      keywords: [branch, naming, feature, fix, convention]
+
+    - path: references/COMMIT-CONVENTIONS.md
+      purpose: Conventional commits format, types, scopes, and examples
+      estimated_tokens: 1800
+      load_when:
+        - Writing a commit message
+        - Commit message validation fails
+        - User asks about commit format
+      keywords: [commit, message, conventional, feat, fix, type]
+
+loading_strategy:
+  recommendation: |
+    1. Start with SKILL.md for basic operations
+    2. Load BRANCH-NAMING.md when creating branches
+    3. Load COMMIT-CONVENTIONS.md when committing
+
+  fallback: |
+    SKILL.md contains quick reference for branch and commit formats.
+    Reference files provide complete specifications.
+
+token_summary:
+  metadata_only: 120
+  with_instructions: 1720
+  with_all_resources: 5020
