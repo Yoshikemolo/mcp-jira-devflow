@@ -1,6 +1,6 @@
 ---
 name: git-jira-integration
-description: Integration between Git workflows and Jira issues. Generates branch names from issues, validates commit messages, and provides PR context from Jira specifications.
+description: "Bridge Git workflows with Jira issues — generate branch names from tickets, validate commit messages, and build PR descriptions from Jira specifications. Use when the user needs to connect Git operations with Jira issues, create branches from Jira tickets, or validate commit messages against project conventions."
 license: MIT
 compatibility: Requires mcp-jira with configured Jira instance
 metadata:
@@ -23,7 +23,7 @@ Bridges Git workflows with Jira project management. Provides consistent naming, 
 
 ## Forbidden Operations
 
-These are NOT performed by this skill - agents have their own Git tools:
+These are NOT performed by this skill — agents have their own Git tools:
 
 - Execute Git commands (clone, pull, push, commit)
 - Create/merge Pull Requests directly
@@ -51,32 +51,36 @@ These are NOT performed by this skill - agents have their own Git tools:
 
 ### Branch Naming
 
-Generate branch name:
 ```
 devflow_git_branch_name(issueKey: "PROJ-123")
+→ "feature/proj-123-add-user-authentication"
 ```
-
-Result: `feature/proj-123-add-user-authentication`
 
 ### Commit Validation
 
-Validate commit message:
 ```
 devflow_git_validate_commit(
   message: "feat(auth): add login page\n\nRefs: PROJ-123",
   projectKey: "PROJ",
   requireIssueKey: true
 )
+→ { "valid": true, "type": "feat", "scope": "auth", "issueKey": "PROJ-123" }
 ```
+
+If validation fails:
+```
+→ { "valid": false, "errors": ["Missing issue key reference", "Scope 'auth' not in allowed list"] }
+```
+Fix the commit message based on reported errors and re-validate before committing.
 
 ### PR Context
 
-Generate PR context:
 ```
 devflow_git_pr_context(
   issueKeys: ["PROJ-123", "PROJ-124"],
   includeAcceptanceCriteria: true
 )
+→ { "title": "feat: add user authentication", "body": "...", "checklist": [...] }
 ```
 
 For detailed conventions, see [BRANCH-CONVENTIONS.md](references/BRANCH-CONVENTIONS.md).
@@ -89,23 +93,21 @@ For PR templates, see [PR-TEMPLATES.md](references/PR-TEMPLATES.md).
 
 1. **Start work on issue:**
    ```
-   # Get branch name from Jira issue
    devflow_git_branch_name(issueKey: "PROJ-123")
-   # Agent creates branch with their git tools
    ```
+   → Use the returned name to create the branch with git tools.
 
 2. **Validate commits:**
    ```
-   # Before committing, validate message
-   devflow_git_validate_commit(message: "feat: add login")
+   devflow_git_validate_commit(message: "feat: add login", projectKey: "PROJ", requireIssueKey: true)
    ```
+   → If `valid: false`, fix message per errors and re-validate. Only commit after `valid: true`.
 
 3. **Create PR:**
    ```
-   # Get PR context from Jira
    devflow_git_pr_context(issueKeys: ["PROJ-123"])
-   # Agent creates PR with their gh/git tools
    ```
+   → Use the returned title/body/checklist with `gh pr create`.
 
 ## Repository Linking
 

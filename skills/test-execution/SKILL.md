@@ -1,6 +1,6 @@
 ---
 name: test-execution
-description: Run unit and integration tests, generate coverage reports, and view results. Use to validate code changes before committing or merging.
+description: "Run test suites, check code coverage, and diagnose test failures. Use when the user asks to run tests, execute a test suite, check test coverage, verify test results, or investigate failing tests."
 license: MIT
 compatibility: Requires Node.js test runner (vitest, jest) or project-specific test framework
 metadata:
@@ -11,16 +11,14 @@ metadata:
 
 # Test Execution Skill
 
-Run and manage automated tests.
+Run and manage automated tests with structured result analysis.
 
 ## Allowed Operations
 
-- Run unit tests
-- Run integration tests
-- Run specific test files
-- Run tests by pattern
-- Generate coverage reports
-- View test results
+- Run unit, integration, and E2E tests
+- Run specific test files or filter by pattern
+- Generate and check coverage reports
+- Analyze test failures and suggest fixes
 
 ## Forbidden Operations
 
@@ -37,13 +35,15 @@ Run and manage automated tests.
 - Test timeout: 30 seconds per test
 - Coverage minimum: 80%
 
-## Test Categories
+## Workflow
 
-| Type | Speed | Dependencies | When to Run |
-|------|-------|--------------|-------------|
-| Unit | Fast | Mocked | Every commit |
-| Integration | Medium | Test fixtures | Before merge |
-| E2E | Slow | Full stack | Before release |
+Follow this sequence when running tests:
+
+1. **Run tests** → Execute the appropriate command for the scope requested
+2. **Check exit code** → Non-zero means failures exist
+3. **Review failures** → Parse error output, identify root cause per failing test
+4. **Verify coverage** → Compare against 80% threshold; flag any drops
+5. **Report results** → Summarize passed/failed/skipped counts and coverage
 
 ## Quick Commands
 
@@ -61,37 +61,28 @@ npm test -- path/to/test.ts
 npm test -- --grep "auth"
 ```
 
+## Test Categories
+
+| Type | Speed | Dependencies | When to Run |
+|------|-------|--------------|-------------|
+| Unit | Fast | Mocked | Every commit |
+| Integration | Medium | Test fixtures | Before merge |
+| E2E | Slow | Full stack | Before release |
+
 For detailed test patterns, see [TEST-PATTERNS.md](references/TEST-PATTERNS.md).
 
 For coverage configuration, see [COVERAGE-GUIDE.md](references/COVERAGE-GUIDE.md).
 
-## Output Format
+## Failure Handling Example
 
-```json
-{
-  "passed": 42,
-  "failed": 0,
-  "skipped": 2,
-  "duration": 1234,
-  "coverage": {
-    "lines": 85.5,
-    "branches": 80.2
-  }
-}
-```
-
-## Failure Handling
-
-- Capture full error output
-- Include stack traces
-- Show relevant code context
-- Suggest potential fixes if obvious
-
-## Example Usage
+When a test fails, parse the output to extract actionable details:
 
 ```
-Run all unit tests
-Run tests matching "auth"
-Run tests with coverage report
-Show results of last test run
+FAIL src/auth/login.test.ts
+  ✕ should reject invalid credentials (12ms)
+
+  Error: Expected status 401, received 500
+    at Object.<anonymous> (src/auth/login.test.ts:24:5)
 ```
+
+Action: The 500 indicates an unhandled error in the login handler rather than a proper 401 rejection. Check `src/auth/login.ts` around the credential validation path for missing error handling.
