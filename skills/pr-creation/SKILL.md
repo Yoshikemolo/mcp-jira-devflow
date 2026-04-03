@@ -1,6 +1,6 @@
 ---
 name: pr-creation
-description: Create and manage GitHub Pull Requests with templates, reviewers, and labels. Use when code is ready for review. Merging requires explicit approval.
+description: "Create and manage GitHub Pull Requests with templates, reviewers, and labels. Use when the user asks to open a PR, create a pull request, add reviewers, request a code review, or check PR status. Merging requires explicit approval."
 license: MIT
 compatibility: Requires GitHub CLI (gh) and repository write access
 metadata:
@@ -11,17 +11,15 @@ metadata:
 
 # Pull Request Creation Skill
 
-Create and manage Pull Requests on GitHub.
+Create and manage Pull Requests on GitHub with Jira issue linking.
 
 ## Allowed Operations
 
 - Create pull requests
 - Update PR description
-- Add reviewers
-- Add labels
+- Add reviewers and labels
 - Request reviews
-- View PR status
-- View PR comments
+- View PR status and comments
 
 ## Forbidden Operations
 
@@ -38,6 +36,19 @@ These require explicit approval:
 - PRs must reference issue/feature ID
 - PRs should have at least one reviewer
 - Use draft PRs for work-in-progress
+
+## Workflow
+
+Follow this sequence when creating a PR:
+
+1. **Verify branch** → Confirm the feature branch exists and has commits ahead of base:
+   `gh api repos/{owner}/{repo}/compare/{base}...{head} --jq '.ahead_by'`
+2. **Create PR** → Use the template and link Jira issues:
+   `gh pr create --base main --head feature/PROJ-123 --title "feat: add login" --body-file /tmp/pr-body.md --reviewer alice,bob --label enhancement`
+3. **Verify creation** → Confirm the PR was created:
+   `gh pr view --json number,url,state`
+4. **Add reviewers/labels** (if not set at creation):
+   `gh pr edit <number> --add-reviewer alice --add-label bug`
 
 ## Quick PR Template
 
@@ -73,18 +84,3 @@ When `dryRun: true`:
 - Verify reviewers exist
 - Show PR preview
 - Make NO API calls
-
-## Linking
-
-- Link to Jira issues using issue key
-- Link to related PRs if applicable
-- Reference relevant documentation
-
-## Example Usage
-
-```
-Create a PR for branch feature/PROJ-123-login
-Add reviewers @alice and @bob to PR #45
-Update PR #45 description with test results
-Show status of my open PRs
-```

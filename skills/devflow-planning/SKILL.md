@@ -1,6 +1,6 @@
 ---
 name: devflow-planning
-description: AI-powered sprint planning, velocity analysis, and capacity forecasting. Use for planning sprints, predicting outcomes, and providing agile recommendations based on historical data.
+description: "Analyze sprint velocity, forecast team capacity, and plan sprints using Jira data. Use when the user asks about story points, backlog grooming, burndown trends, sprint capacity, team velocity, or needs agile planning recommendations."
 license: MIT
 compatibility: Requires mcp-jira with configured Jira instance
 metadata:
@@ -11,7 +11,7 @@ metadata:
 
 # DevFlow Planning Skill
 
-Sprint planning, velocity analysis, and predictive analytics for agile teams.
+Sprint planning, velocity analysis, and capacity forecasting for agile teams using Jira project data.
 
 ## Allowed Operations
 
@@ -35,36 +35,24 @@ These require explicit user approval:
 
 ## Sprint Planning Workflow
 
-```
-1. Analyze velocity → Get historical data
-2. Calculate capacity → Team availability
-3. Recommend load → Based on trends
-4. Assess risks → Per-issue spillover
-5. Validate plan → Sprint success prediction
-```
+1. **Fetch velocity data** → Query completed sprints via Jira (minimum 3 sprints for reliable forecasts)
+2. **Calculate capacity** → `Team Capacity = Sum(member availability × sprint days)`; apply buffer: `Recommended Load = Avg Velocity × (1 - Buffer%)`
+3. **Recommend load** → Compare proposed scope against recommended load; flag if over threshold
+4. **Assess risks** → Check each issue for: missing estimates, blocked status >2 days, cross-project dependencies
+5. **Validate plan** → Confirm coverage ≤ recommended load; present sprint success probability to user before committing
+
+Buffer guidelines: Stable team 10%, new members 20%, high uncertainty 30%.
 
 ## Quick Velocity Reference
 
-| Metric | Description | Use For |
-|--------|-------------|---------|
-| Avg Velocity | Points completed per sprint | Baseline planning |
-| Trend Direction | Increasing/Stable/Decreasing | Adjust forecasts |
-| Completion Rate | Done vs Committed ratio | Risk assessment |
-| Variance | Sprint-to-sprint deviation | Confidence levels |
+| Metric | Use For |
+|--------|---------|
+| Avg Velocity (points/sprint) | Baseline planning |
+| Trend Direction | Adjust forecasts up/down |
+| Completion Rate (done/committed) | Risk assessment |
+| Variance (sprint-to-sprint) | Confidence levels |
 
 For complete velocity patterns, see [VELOCITY-PATTERNS.md](references/VELOCITY-PATTERNS.md).
-
-## Quick Capacity Reference
-
-```
-Team Capacity = Sum(member availability × sprint days)
-Recommended Load = Avg Velocity × (1 - Buffer%)
-
-Buffer Guidelines:
-- Stable team: 10%
-- New members: 20%
-- High uncertainty: 30%
-```
 
 For sprint planning details, see [SPRINT-PLANNING-GUIDE.md](references/SPRINT-PLANNING-GUIDE.md).
 
@@ -80,30 +68,8 @@ For sprint planning details, see [SPRINT-PLANNING-GUIDE.md](references/SPRINT-PL
 
 ## GitFlow Integration
 
-When planning work:
-
-1. Feature branches from `develop`
-2. Naming: `feature/<issue-key>-<description>`
-3. One issue = one branch
-4. Complete sprint items before merge
+When planning work: feature branches from `develop`, naming `feature/<issue-key>-<description>`, one issue per branch, complete sprint items before merge.
 
 For GitFlow details, see [GITFLOW-RECOMMENDATIONS.md](references/GITFLOW-RECOMMENDATIONS.md).
 
-## Scrum Constraints
-
-- Stories must have acceptance criteria
-- Epics should have child estimates
-- Sprint goals align with epic objectives
-- Retrospective actions tracked
-
 For Scrum patterns, see [SCRUM-BEST-PRACTICES.md](references/SCRUM-BEST-PRACTICES.md).
-
-## Example Usage
-
-```
-Analyze velocity for project PROJ over last 5 sprints
-Plan next sprint with 80% capacity buffer
-Show spillover risks for current sprint items
-Predict success rate for proposed sprint scope
-Map dependencies between PROJ and INFRA projects
-```
