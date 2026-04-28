@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/yoshikemolo-mcp-jira-devflow-badge.png)](https://mseep.ai/app/yoshikemolo-mcp-jira-devflow)
+
 # MCP Jira DevFlow
 
 [![npm version](https://img.shields.io/npm/v/@ximplicity/mcp-jira.svg)](https://www.npmjs.com/package/@ximplicity/mcp-jira)
