@@ -4,7 +4,7 @@
 
 ## Overview
 
-This document provides an overview of all 8 capabilities available in MCP Jira DevFlow.
+This document provides an overview of all 9 capabilities available in MCP Jira DevFlow.
 
 ## Capabilities Summary
 
@@ -18,6 +18,7 @@ This document provides an overview of all 8 capabilities available in MCP Jira D
 | F007 | Git-Jira integration for repository linking, branc... | Stable | 4 |
 | F008 | Generate Pull Request context from Jira issues inc... | Stable | 1 |
 | F009 | Manage Jira boards and sprints including listing, ... | Stable | 5 |
+| F010 | Rich text fields of the write tools accept Markdow... | Stable | 0 |
 
 ## Detailed Capabilities
 
@@ -215,5 +216,24 @@ Manage Jira boards and sprints including listing, querying, and moving issues be
 
 ---
 
+### F010: Rich Text Input
 
-*Generated: 2026-01-22*
+**Status:** Stable
+**Package:** `@ximplicity/mcp-jira`
+**Skills:** `jira-write`
+
+Rich text fields of the write tools accept Markdown (default), Atlassian Document Format (ADF) or plain text. Markdown is converted to ADF before it is sent to Jira; ADF input is validated and sent as-is.
+
+**Capabilities:**
+- Explicit format parameter per rich text field (`descriptionFormat`, `commentFormat`)
+- Markdown to ADF conversion (GitHub-flavored Markdown):
+- ADF input as an object or JSON string, validated before any API call
+- Plain text format that keeps the previous behavior
+- Dry-run previews that show the generated ADF
+
+[Full Documentation](./features/F010-rich-text-input/)
+
+---
+
+
+*Generated: 2026-10-22*

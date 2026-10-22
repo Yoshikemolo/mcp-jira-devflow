@@ -86,10 +86,26 @@ null
 
 ### Description Format
 
-Plain text is automatically converted to Atlassian Document Format (ADF):
+Descriptions (`create_issue`, `update_issue`) and transition comments (`transition_issue`) accept three formats, selected with `descriptionFormat` / `commentFormat`:
+
+| Format | Value | Notes |
+|--------|-------|-------|
+| `markdown` (default) | string | GitHub-flavored Markdown converted to ADF |
+| `adf` | object or JSON string | Validated and sent unchanged |
+| `text` | string | Literal text; Markdown syntax is not interpreted |
+
+See [F010 tool contracts](../../../features/F010-rich-text-input/tool-contracts.md) for the full Markdown mapping.
+
+Markdown example:
 
 ```json
-// Input (plain text)
+"description": "## Context\n\n- First point with **bold** text\n- [Spec](https://example.com/spec)"
+```
+
+Plain text is converted to Atlassian Document Format (ADF) with paragraphs and line breaks preserved:
+
+```json
+// Input (descriptionFormat: "text")
 "description": "This is the description.\n\nWith multiple paragraphs."
 
 // Converted to ADF internally

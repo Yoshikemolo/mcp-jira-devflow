@@ -17,7 +17,8 @@ Creates a new Jira issue.
   projectKey: string;      // Pattern: ^[A-Z][A-Z0-9]*$
   summary: string;         // Max: 255 chars
   issueTypeName: string;   // e.g., 'Bug', 'Story', 'Task'
-  description?: string;
+  description?: string | AdfDocument;  // See F010
+  descriptionFormat?: "markdown" | "adf" | "text";  // Default: "markdown"
   assigneeAccountId?: string;
   priorityName?: string;
   labels?: string[];
@@ -66,7 +67,8 @@ Updates an existing Jira issue.
 {
   issueKey: string;           // Pattern: ^[A-Z][A-Z0-9]*-\d+$
   summary?: string;
-  description?: string;
+  description?: string | AdfDocument;  // See F010
+  descriptionFormat?: "markdown" | "adf" | "text";  // Default: "markdown"
   assigneeAccountId?: string | null;  // null to unassign
   priorityName?: string;
   labels?: string[];          // Replaces existing
@@ -112,7 +114,8 @@ Transitions an issue to a new status.
   listTransitions?: boolean;  // Default: false
   transitionId?: string;
   transitionName?: string;    // Case-insensitive
-  comment?: string;
+  comment?: string | AdfDocument;      // See F010
+  commentFormat?: "markdown" | "adf" | "text";  // Default: "markdown"
   fields?: Record<string, any>;  // Required transition fields
 }
 ```

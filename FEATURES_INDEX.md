@@ -54,6 +54,11 @@ features:
     path: "features/F009-board-sprint-management/"
     tools: ["get_boards", "get_board_sprints", "get_sprint", "move_issues_to_sprint", "update_sprint"]
     skills: ["jira-read, jira-write"]
+  F010:
+    name: "F010-rich-text-input"
+    status: "Stable"
+    path: "features/F010-rich-text-input/"
+    skills: ["jira-write"]
 ```
 
 ## Feature Documents
@@ -138,6 +143,16 @@ features:
 | agent-instructions.md | Implementation guide | features/F009-board-sprint-management/agent-instructions.md |
 | tool-contracts.md | Tool input/output specifications | features/F009-board-sprint-management/tool-contracts.md |
 
+### F010
+
+| Document | Purpose | Path |
+|----------|---------|------|
+| README.md | Overview and quick reference | features/F010-rich-text-input/README.md |
+| scope.md | Feature boundaries and dependencies | features/F010-rich-text-input/scope.md |
+| acceptance-criteria.md | Definition of Done | features/F010-rich-text-input/acceptance-criteria.md |
+| agent-instructions.md | Implementation guide | features/F010-rich-text-input/agent-instructions.md |
+| tool-contracts.md | Tool input/output specifications | features/F010-rich-text-input/tool-contracts.md |
+
 ## Tools by Feature
 
 | Tool | Feature | Operation |
@@ -163,4 +178,4 @@ features:
 | `move_issues_to_sprint` | F009 | Move issues to a sprint |
 | `update_sprint` | F009 | Update sprint properties |
 
-*Generated: 2026-01-22*
+*Generated: 2026-10-22*

@@ -11,6 +11,12 @@ import {
   JiraAuthError,
   JiraNotFoundError,
 } from "../domain/jira-client.js";
+import {
+  RichTextError,
+  RichTextFormatSchema,
+  toAdf,
+  type AdfDocument,
+} from "../domain/rich-text.js";
 
 /**
  * Input schema for update_issue tool.
@@ -27,9 +33,14 @@ export const UpdateIssueInputSchema = z.object({
     .optional()
     .describe("New summary/title"),
   description: z
-    .string()
+    .union([z.string(), z.record(z.unknown())])
     .optional()
-    .describe("New description (plain text, converted to ADF)"),
+    .describe(
+      "New description as Markdown (default), plain text, or an ADF document; see descriptionFormat"
+    ),
+  descriptionFormat: RichTextFormatSchema.describe(
+    "Format of description: markdown (default), adf (ADF object or JSON string), or text"
+  ),
   assigneeAccountId: z
     .string()
     .nullable()
@@ -77,8 +88,15 @@ export const updateIssueTool = {
         maxLength: 255,
       },
       description: {
+        type: ["string", "object"],
+        description:
+          "New description. Markdown string by default; an ADF document (object or JSON string) when descriptionFormat is 'adf'; plain text when 'text'",
+      },
+      descriptionFormat: {
         type: "string",
-        description: "New description (plain text, converted to ADF)",
+        enum: ["markdown", "adf", "text"],
+        description: "Format of description (default: markdown)",
+        default: "markdown",
       },
       assigneeAccountId: {
         type: ["string", "null"],
@@ -131,7 +149,24 @@ export async function executeUpdateIssue(
     };
   }
 
-  const { dryRun, ...updateInput } = parseResult.data;
+  const { dryRun, descriptionFormat, description: rawDescription, ...fields } =
+    parseResult.data;
+
+  let description: AdfDocument | undefined;
+  try {
+    description =
+      rawDescription !== undefined ? toAdf(rawDescription, descriptionFormat) : undefined;
+  } catch (error) {
+    if (error instanceof RichTextError) {
+      return {
+        content: [{ type: "text", text: `Validation error: description: ${error.message}` }],
+        isError: true,
+      };
+    }
+    throw error;
+  }
+
+  const updateInput = { ...fields, description };
 
   // Check if there are any fields to update
   const fieldsToUpdate: string[] = [];
@@ -161,7 +196,9 @@ export async function executeUpdateIssue(
       issueKey: updateInput.issueKey,
       wouldUpdate: {
         summary: updateInput.summary,
-        description: updateInput.description ? "(provided)" : undefined,
+        description: description
+          ? { format: descriptionFormat, adf: description }
+          : undefined,
         assignee: updateInput.assigneeAccountId,
         priority: updateInput.priorityName,
         labels: updateInput.labels,

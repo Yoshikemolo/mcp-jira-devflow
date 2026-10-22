@@ -34,6 +34,7 @@ Write operations for creating and modifying Jira data.
 ## Constraints
 
 - All write operations support dry-run mode
+- Descriptions and comments are Markdown by default; set `descriptionFormat` / `commentFormat` to `adf` or `text` for other formats
 - Each operation must be atomic
 - Maximum 10 operations per batch
 

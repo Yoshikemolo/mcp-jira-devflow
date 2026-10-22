@@ -7,6 +7,12 @@
 import { z } from "zod";
 import type { JiraClient } from "../domain/jira-client.js";
 import { JiraApiError, JiraAuthError } from "../domain/jira-client.js";
+import {
+  RichTextError,
+  RichTextFormatSchema,
+  toAdf,
+  type AdfDocument,
+} from "../domain/rich-text.js";
 
 /**
  * Input schema for create_issue tool.
@@ -25,9 +31,14 @@ export const CreateIssueInputSchema = z.object({
     .string()
     .describe("The issue type name (e.g., Bug, Story, Task, Sub-task)"),
   description: z
-    .string()
+    .union([z.string(), z.record(z.unknown())])
     .optional()
-    .describe("Plain text description (converted to Atlassian Document Format)"),
+    .describe(
+      "Description as Markdown (default), plain text, or an ADF document; see descriptionFormat"
+    ),
+  descriptionFormat: RichTextFormatSchema.describe(
+    "Format of description: markdown (default), adf (ADF object or JSON string), or text"
+  ),
   assigneeAccountId: z
     .string()
     .optional()
@@ -83,8 +94,15 @@ export const createIssueTool = {
         description: "The issue type name (e.g., Bug, Story, Task, Sub-task)",
       },
       description: {
+        type: ["string", "object"],
+        description:
+          "Description. Markdown string by default; an ADF document (object or JSON string) when descriptionFormat is 'adf'; plain text when 'text'",
+      },
+      descriptionFormat: {
         type: "string",
-        description: "Plain text description (converted to ADF)",
+        enum: ["markdown", "adf", "text"],
+        description: "Format of description (default: markdown)",
+        default: "markdown",
       },
       assigneeAccountId: {
         type: "string",
@@ -142,7 +160,24 @@ export async function executeCreateIssue(
     };
   }
 
-  const { dryRun, ...createInput } = parseResult.data;
+  const { dryRun, descriptionFormat, description: rawDescription, ...fields } =
+    parseResult.data;
+
+  let description: AdfDocument | undefined;
+  try {
+    description =
+      rawDescription !== undefined ? toAdf(rawDescription, descriptionFormat) : undefined;
+  } catch (error) {
+    if (error instanceof RichTextError) {
+      return {
+        content: [{ type: "text", text: `Validation error: description: ${error.message}` }],
+        isError: true,
+      };
+    }
+    throw error;
+  }
+
+  const createInput = { ...fields, description };
 
   // Dry run mode - just validate and return what would be created
   if (dryRun) {
@@ -152,7 +187,9 @@ export async function executeCreateIssue(
         project: createInput.projectKey,
         summary: createInput.summary,
         issueType: createInput.issueTypeName,
-        description: createInput.description ? "(provided)" : undefined,
+        description: description
+          ? { format: descriptionFormat, adf: description }
+          : undefined,
         assignee: createInput.assigneeAccountId,
         priority: createInput.priorityName,
         labels: createInput.labels,

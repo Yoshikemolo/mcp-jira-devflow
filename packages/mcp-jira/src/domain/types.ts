@@ -8,6 +8,8 @@
  * exactOptionalPropertyTypes TypeScript option.
  */
 
+import type { AdfDocument } from "./rich-text.js";
+
 /**
  * Jira sprint representation.
  */
@@ -258,7 +260,8 @@ export interface CreateIssueInput {
   readonly projectKey: string;
   readonly summary: string;
   readonly issueTypeName: string;
-  readonly description?: string | undefined;
+  /** Plain text (converted to ADF) or an ADF document */
+  readonly description?: string | AdfDocument | undefined;
   readonly assigneeAccountId?: string | undefined;
   readonly priorityName?: string | undefined;
   readonly labels?: readonly string[] | undefined;
@@ -272,7 +275,8 @@ export interface CreateIssueInput {
 export interface UpdateIssueInput {
   readonly issueKey: string;
   readonly summary?: string | undefined;
-  readonly description?: string | undefined;
+  /** Plain text (converted to ADF) or an ADF document */
+  readonly description?: string | AdfDocument | undefined;
   readonly assigneeAccountId?: string | null | undefined;
   readonly priorityName?: string | undefined;
   readonly labels?: readonly string[] | undefined;
@@ -307,7 +311,8 @@ export interface TransitionIssueInput {
   readonly transitionId?: string | undefined;
   readonly transitionName?: string | undefined;
   readonly fields?: Record<string, unknown> | undefined;
-  readonly comment?: string | undefined;
+  /** Plain text (converted to ADF) or an ADF document */
+  readonly comment?: string | AdfDocument | undefined;
 }
 
 /**

@@ -37,3 +37,4 @@ Write operations for creating, updating, and transitioning Jira issues with dry-
 
 - [F001: Jira Read Operations](../F001-jira-read/README.md) - Read operations
 - [F009: Board & Sprint Management](../F009-board-sprint-management/README.md) - Sprint operations
+- [F010: Rich Text Input](../F010-rich-text-input/README.md) - Markdown and ADF for descriptions and comments

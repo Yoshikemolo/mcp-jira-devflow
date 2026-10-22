@@ -29,6 +29,15 @@ All inputs MUST be validated:
 2. Schema validation (Zod)
 3. Business rule validation
 
+### Rich Text Input
+
+Markdown and ADF supplied to write tools (F010) are treated as untrusted:
+
+- Raw HTML in Markdown is kept as literal text and never interpreted
+- Links are only generated for `http`, `https`, `mailto`, relative and anchor URLs
+- ADF input is validated structurally (strict properties, non-empty text nodes, maximum nesting depth of 32) before any request
+- The Markdown parser (`marked`) is pinned to an exact version
+
 ## External Services
 
 ### Jira API

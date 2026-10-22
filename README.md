@@ -496,8 +496,8 @@ Example output includes:
 | `get_sprint_velocity` | Team velocity metrics and sprint performance analysis |
 | `jira_deep_analysis` | Hierarchical analysis with metrics aggregation and anomaly detection |
 | `create_issue` | Create new issues with full field support (subtasks, story points, labels) |
-| `update_issue` | Update existing issues (summary, description, assignee, priority, etc.) |
-| `transition_issue` | Transition issues between workflow states |
+| `update_issue` | Update existing issues (summary, description, assignee, priority, etc.); descriptions in Markdown or ADF |
+| `transition_issue` | Transition issues between workflow states, with optional Markdown or ADF comment |
 | `get_boards` | List Jira boards with project/type/name filters |
 | `get_board_sprints` | List sprints for a board (future/active/closed) |
 | `get_sprint` | Get sprint details with issues and metrics |
@@ -715,6 +715,7 @@ MCP Jira DevFlow is a unified platform for AI-assisted enterprise development:
 - [x] Deep hierarchical analysis with anomaly detection → [F005](./features/F005-deep-analysis/)
 - [x] Write operations (create, update, transition issues) → [F006](./features/F006-jira-write/)
 - [x] Board and sprint management → [F009](./features/F009-board-sprint-management/)
+- [x] Markdown and ADF input for descriptions and comments → [F010](./features/F010-rich-text-input/)
 - [x] Custom field mapping and configuration
 
 ### Phase 2: Git Integration (Complete)
@@ -764,7 +765,8 @@ mcp-jira-devflow/
 │   ├── F006-jira-write/             # Write operations
 │   ├── F007-git-integration/        # Git-Jira integration
 │   ├── F008-pr-context/             # PR generation
-│   └── F009-board-sprint-management/# Board & sprint ops
+│   ├── F009-board-sprint-management/# Board & sprint ops
+│   └── F010-rich-text-input/        # Markdown and ADF input
 ├── skills/                          # Agent behavior definitions
 │   ├── jira-read/                   # Read operation constraints
 │   ├── jira-write/                  # Write operation constraints
@@ -796,6 +798,7 @@ mcp-jira-devflow/
 | F007 | Git Integration | Stable | Repository linking, branch naming, commit validation | [View](./features/F007-git-integration/) |
 | F008 | PR Context | Stable | PR title/body generation from Jira specifications | [View](./features/F008-pr-context/) |
 | F009 | Board & Sprint Management | Stable | Board listing, sprint operations, issue movement | [View](./features/F009-board-sprint-management/) |
+| F010 | Rich Text Input | Stable | Markdown (default) and ADF for descriptions and comments | [View](./features/F010-rich-text-input/) |
 
 ### Development Mode
 

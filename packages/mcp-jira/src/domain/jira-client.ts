@@ -9,6 +9,7 @@
  */
 
 import type { JiraConfig } from "../config/index.js";
+import type { AdfDocument } from "./rich-text.js";
 import type { ResolvedFieldMappings } from "../server-state.js";
 import type {
   JiraIssue,
@@ -220,6 +221,13 @@ const BASE_SEARCH_FIELDS = [
 
 // Default search fields and extended issue fields are now computed dynamically
 // via getSearchFields() and getExtendedFields() methods in JiraClient
+
+/**
+ * Returns an ADF body, converting plain text when needed.
+ */
+function toAdfBody(value: string | AdfDocument): object {
+  return typeof value === "string" ? textToAdf(value) : value;
+}
 
 /**
  * Maximum length of Jira error detail included in error messages.
@@ -852,7 +860,7 @@ export class JiraClient {
 
     // Add optional fields
     if (input.description) {
-      fields["description"] = textToAdf(input.description);
+      fields["description"] = toAdfBody(input.description);
     }
 
     if (input.assigneeAccountId) {
@@ -911,7 +919,7 @@ export class JiraClient {
     }
 
     if (input.description !== undefined) {
-      fields["description"] = textToAdf(input.description);
+      fields["description"] = toAdfBody(input.description);
     }
 
     if (input.assigneeAccountId !== undefined) {
@@ -1033,7 +1041,7 @@ export class JiraClient {
         comment: [
           {
             add: {
-              body: textToAdf(input.comment),
+              body: toAdfBody(input.comment),
             },
           },
         ],

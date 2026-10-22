@@ -11,6 +11,12 @@ import {
   JiraAuthError,
   JiraNotFoundError,
 } from "../domain/jira-client.js";
+import {
+  RichTextError,
+  RichTextFormatSchema,
+  toAdf,
+  type AdfDocument,
+} from "../domain/rich-text.js";
 
 /**
  * Input schema for transition_issue tool.
@@ -34,9 +40,14 @@ export const TransitionIssueInputSchema = z
       .optional()
       .describe("Fields required by the transition (e.g., resolution)"),
     comment: z
-      .string()
+      .union([z.string(), z.record(z.unknown())])
       .optional()
-      .describe("Comment to add during transition"),
+      .describe(
+        "Comment to add during transition as Markdown (default), plain text, or an ADF document; see commentFormat"
+      ),
+    commentFormat: RichTextFormatSchema.describe(
+      "Format of comment: markdown (default), adf (ADF object or JSON string), or text"
+    ),
     listTransitions: z
       .boolean()
       .default(false)
@@ -81,8 +92,15 @@ export const transitionIssueTool = {
         additionalProperties: true,
       },
       comment: {
+        type: ["string", "object"],
+        description:
+          "Comment to add during transition. Markdown string by default; an ADF document (object or JSON string) when commentFormat is 'adf'; plain text when 'text'",
+      },
+      commentFormat: {
         type: "string",
-        description: "Comment to add during transition",
+        enum: ["markdown", "adf", "text"],
+        description: "Format of comment (default: markdown)",
+        default: "markdown",
       },
       listTransitions: {
         type: "boolean",
@@ -117,8 +135,28 @@ export async function executeTransitionIssue(
     };
   }
 
-  const { issueKey, listTransitions, transitionId, transitionName, fields, comment } =
-    parseResult.data;
+  const {
+    issueKey,
+    listTransitions,
+    transitionId,
+    transitionName,
+    fields,
+    comment: rawComment,
+    commentFormat,
+  } = parseResult.data;
+
+  let comment: AdfDocument | undefined;
+  try {
+    comment = rawComment !== undefined ? toAdf(rawComment, commentFormat) : undefined;
+  } catch (error) {
+    if (error instanceof RichTextError) {
+      return {
+        content: [{ type: "text", text: `Validation error: comment: ${error.message}` }],
+        isError: true,
+      };
+    }
+    throw error;
+  }
 
   try {
     // List transitions mode
