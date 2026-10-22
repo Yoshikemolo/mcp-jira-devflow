@@ -21,7 +21,7 @@ import { setConfigured, setUnconfigured, resolveFieldMappings } from "./server-s
 import { startWatcher, stopWatcher, getWatcherConfig } from "./dev/watcher.js";
 
 const SERVER_NAME = "mcp-jira";
-const SERVER_VERSION = "0.1.0";
+const SERVER_VERSION = "0.1.1";
 
 /**
  * Creates and configures the MCP server instance.

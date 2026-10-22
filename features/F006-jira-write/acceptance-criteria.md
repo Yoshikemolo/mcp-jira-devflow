@@ -38,6 +38,8 @@ Definition of Done for F006-jira-write.
 - [ ] Only specified fields change
 - [ ] Unchanged fields preserved
 - [ ] Returns updated issue
+- [x] Jira's `204 No Content` success response is reported as success, and the request is sent only once (no retry)
+- [x] Jira 4xx validation messages (`errorMessages`, field `errors`) are included in the error text
 
 ### AC-004: Update Issue - Dry Run
 

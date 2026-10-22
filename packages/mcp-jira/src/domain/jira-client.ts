@@ -221,6 +221,57 @@ const BASE_SEARCH_FIELDS = [
 // Default search fields and extended issue fields are now computed dynamically
 // via getSearchFields() and getExtendedFields() methods in JiraClient
 
+/**
+ * Maximum length of Jira error detail included in error messages.
+ */
+const MAX_ERROR_DETAIL_LENGTH = 500;
+
+/**
+ * Extracts human-readable validation messages from a Jira error body.
+ *
+ * Jira returns `{ errorMessages: string[], errors: { field: message } }`
+ * for 4xx responses. Returns undefined when the body has neither.
+ */
+export function extractJiraErrorDetail(body: string): string | undefined {
+  if (!body) return undefined;
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(body);
+  } catch {
+    return undefined;
+  }
+
+  if (typeof parsed !== "object" || parsed === null) return undefined;
+
+  const { errorMessages, errors } = parsed as {
+    errorMessages?: unknown;
+    errors?: unknown;
+  };
+  const parts: string[] = [];
+
+  if (Array.isArray(errorMessages)) {
+    for (const message of errorMessages) {
+      if (typeof message === "string" && message) parts.push(message);
+    }
+  }
+
+  if (typeof errors === "object" && errors !== null) {
+    for (const [field, message] of Object.entries(errors)) {
+      if (typeof message === "string" && message) {
+        parts.push(`${field}: ${message}`);
+      }
+    }
+  }
+
+  if (parts.length === 0) return undefined;
+
+  const detail = parts.join("; ");
+  return detail.length > MAX_ERROR_DETAIL_LENGTH
+    ? `${detail.slice(0, MAX_ERROR_DETAIL_LENGTH)}...`
+    : detail;
+}
+
 export class JiraClient {
   private readonly config: JiraConfig;
   private readonly logger: Logger;
@@ -457,18 +508,34 @@ export class JiraClient {
           }
 
           // Client error - don't retry
-          // Read error body for debugging but don't expose in message
-          await response.text().catch(() => {});
+          // Include Jira's validation messages so the caller can act on them
+          const errorBody = await response.text().catch(() => "");
+          const detail = extractJiraErrorDetail(errorBody);
           throw new JiraApiError(
-            `Request failed with status ${response.status}`,
+            detail
+              ? `Request failed with status ${response.status}: ${detail}`
+              : `Request failed with status ${response.status}`,
             response.status,
             requestId
           );
         }
 
-        // Parse response
-        const data = (await response.json()) as T;
-        return data;
+        // Write operations answer 204 No Content (empty body)
+        const text = await response.text();
+        if (response.status === 204 || text.trim() === "") {
+          return undefined as T;
+        }
+
+        try {
+          return JSON.parse(text) as T;
+        } catch {
+          // The request did succeed, so retrying could repeat a side effect
+          throw new JiraApiError(
+            "Invalid JSON in Jira response",
+            response.status,
+            requestId
+          );
+        }
       } catch (error) {
         if (error instanceof JiraApiError) {
           throw error;

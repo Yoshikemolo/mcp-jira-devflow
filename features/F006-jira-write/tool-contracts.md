@@ -153,3 +153,18 @@ Transitions an issue to a new status.
 | `NOT_FOUND` | Issue not found |
 | `INVALID_TRANSITION` | Transition not available |
 | `MISSING_FIELDS` | Required fields not provided |
+
+---
+
+## Jira HTTP Response Handling (all write tools)
+
+- Jira answers successful writes (`PUT /issue/{key}`, `POST /issue/{key}/transitions`,
+  `POST /sprint/{id}/issue`) with `204 No Content`. The client treats an empty body as
+  success and does not try to parse it as JSON.
+- A successful response with a malformed JSON body fails with
+  `Invalid JSON in Jira response` and is **not** retried, since the write may already
+  have been applied.
+- 4xx responses are not retried. The error message includes Jira's validation detail
+  (`errorMessages` plus `field: message` pairs from `errors`), truncated to 500 characters,
+  e.g. `Request failed with status 400: customfield_10016: Field 'customfield_10016' cannot be set...`.
+  Response bodies are never logged.
